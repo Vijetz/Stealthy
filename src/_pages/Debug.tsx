@@ -21,14 +21,6 @@ type DiffLine = {
   removed?: boolean
 }
 
-const syntaxHighlighterStyles = {
-  ".syntax-line": {
-    whiteSpace: "pre-wrap",
-    wordBreak: "break-word",
-    overflowWrap: "break-word"
-  }
-} as const
-
 const CodeComparisonSection = ({
   oldCode,
   newCode,
@@ -41,59 +33,32 @@ const CodeComparisonSection = ({
   const computeDiff = () => {
     if (!oldCode || !newCode) return { leftLines: [], rightLines: [] }
 
-    // Normalize line endings and clean up the code
     const normalizeCode = (code: string) => {
-      return code
-        .replace(/\r\n/g, "\n") // Convert Windows line endings to Unix
-        .replace(/\r/g, "\n") // Convert remaining carriage returns
-        .trim() // Remove leading/trailing whitespace
+      return code.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim()
     }
 
     const normalizedOldCode = normalizeCode(oldCode)
     const normalizedNewCode = normalizeCode(newCode)
 
-    // Generate the diff
     const diff = diffLines(normalizedOldCode, normalizedNewCode, {
       newlineIsToken: true,
-      ignoreWhitespace: true // Changed to true to better handle whitespace differences
+      ignoreWhitespace: true
     })
 
-    // Process the diff to create parallel arrays
     const leftLines: DiffLine[] = []
     const rightLines: DiffLine[] = []
 
     diff.forEach((part) => {
+      const lines = part.value.split('\n').filter(line => line.length > 0);
       if (part.added) {
-        // Add empty lines to left side
-        leftLines.push(...Array(part.count || 0).fill({ value: "" }))
-        // Add new lines to right side, filter out empty lines at the end
-        rightLines.push(
-          ...part.value
-            .split("\n")
-            .filter((line) => line.length > 0)
-            .map((line) => ({
-              value: line,
-              added: true
-            }))
-        )
+        leftLines.push(...Array(lines.length).fill({ value: "" }))
+        rightLines.push(...lines.map(line => ({ value: line, added: true })))
       } else if (part.removed) {
-        // Add removed lines to left side, filter out empty lines at the end
-        leftLines.push(
-          ...part.value
-            .split("\n")
-            .filter((line) => line.length > 0)
-            .map((line) => ({
-              value: line,
-              removed: true
-            }))
-        )
-        // Add empty lines to right side
-        rightLines.push(...Array(part.count || 0).fill({ value: "" }))
+        leftLines.push(...lines.map(line => ({ value: line, removed: true })))
+        rightLines.push(...Array(lines.length).fill({ value: "" }))
       } else {
-        // Add unchanged lines to both sides
-        const lines = part.value.split("\n").filter((line) => line.length > 0)
-        leftLines.push(...lines.map((line) => ({ value: line })))
-        rightLines.push(...lines.map((line) => ({ value: line })))
+        leftLines.push(...lines.map(line => ({ value: line })))
+        rightLines.push(...lines.map(line => ({ value: line })))
       }
     })
 
@@ -117,7 +82,6 @@ const CodeComparisonSection = ({
         </div>
       ) : (
         <div className="flex flex-row gap-0.5 bg-[#161b22] rounded-lg overflow-hidden">
-          {/* Previous Code */}
           <div className="w-1/2 border-r border-gray-700">
             <div className="bg-[#2d333b] px-3 py-1.5">
               <h3 className="text-[11px] font-medium text-gray-200">
@@ -137,24 +101,20 @@ const CodeComparisonSection = ({
                 }}
                 wrapLines={true}
                 showLineNumbers={true}
-                lineProps={(lineNumber) => {
-                  const line = leftLines[lineNumber - 1]
-                  return {
-                    style: {
-                      display: "block",
-                      backgroundColor: line?.removed
-                        ? "rgba(139, 0, 0, 0.2)"
-                        : "transparent"
-                    }
+                lineProps={(lineNumber) => ({
+                  style: {
+                    display: "block",
+                    backgroundColor: leftLines[lineNumber - 1]?.removed
+                      ? "rgba(139, 0, 0, 0.2)"
+                      : "transparent"
                   }
-                }}
+                })}
               >
                 {leftLines.map((line) => line.value).join("\n")}
               </SyntaxHighlighter>
             </div>
           </div>
 
-          {/* New Code */}
           <div className="w-1/2">
             <div className="bg-[#2d333b] px-3 py-1.5">
               <h3 className="text-[11px] font-medium text-gray-200">
@@ -174,17 +134,14 @@ const CodeComparisonSection = ({
                 }}
                 wrapLines={true}
                 showLineNumbers={true}
-                lineProps={(lineNumber) => {
-                  const line = rightLines[lineNumber - 1]
-                  return {
-                    style: {
-                      display: "block",
-                      backgroundColor: line?.added
-                        ? "rgba(0, 139, 0, 0.2)"
-                        : "transparent"
-                    }
+                lineProps={(lineNumber) => ({
+                  style: {
+                    display: "block",
+                    backgroundColor: rightLines[lineNumber - 1]?.added
+                      ? "rgba(0, 139, 0, 0.2)"
+                      : "transparent"
                   }
-                }}
+                })}
               >
                 {rightLines.map((line) => line.value).join("\n")}
               </SyntaxHighlighter>
@@ -207,7 +164,7 @@ const Debug: React.FC<DebugProps> = ({ isProcessing, setIsProcessing }) => {
 
   const [oldCode, setOldCode] = useState<string | null>(null)
   const [newCode, setNewCode] = useState<string | null>(null)
-  const [thoughtsData, setThoughtsData] = useState<string[] | null>(null)
+  const [explanation, setExplanation] = useState<string | null>(null)
   const [timeComplexityData, setTimeComplexityData] = useState<string | null>(
     null
   )
@@ -268,31 +225,33 @@ const Debug: React.FC<DebugProps> = ({ isProcessing, setIsProcessing }) => {
   }
 
   useEffect(() => {
-    // Try to get the new solution data from cache first
-    const newSolution = queryClient.getQueryData(["new_solution"]) as {
-      old_code: string
-      new_code: string
-      thoughts: string[]
-      time_complexity: string
-      space_complexity: string
-    } | null
+    const originalSolution = queryClient.getQueryData("solution") as any;
+    const newSolution = queryClient.getQueryData("new_solution") as any;
 
-    // If we have cached data, set all state variables to the cached data
+    if (originalSolution) {
+      setOldCode(originalSolution.code || null)
+    }
+
     if (newSolution) {
-      setOldCode(newSolution.old_code || null)
-      setNewCode(newSolution.new_code || null)
-      setThoughtsData(newSolution.thoughts || null)
+      setNewCode(newSolution.code || null)
+      setExplanation(newSolution.explanation || null)
       setTimeComplexityData(newSolution.time_complexity || null)
       setSpaceComplexityData(newSolution.space_complexity || null)
       setIsProcessing(false)
     }
 
-    // Set up event listeners
     const cleanupFunctions = [
       window.electronAPI.onScreenshotTaken(() => refetch()),
       window.electronAPI.onResetView(() => refetch()),
       window.electronAPI.onDebugSuccess(() => {
-        setIsProcessing(false) //all the other stuff ahapepns in the parent component, so we just need to do this.
+        const newSolutionData = queryClient.getQueryData("new_solution") as any;
+        if (newSolutionData) {
+          setNewCode(newSolutionData.code || null)
+          setExplanation(newSolutionData.explanation || null)
+          setTimeComplexityData(newSolutionData.time_complexity || null)
+          setSpaceComplexityData(newSolutionData.space_complexity || null)
+        }
+        setIsProcessing(false)
       }),
       window.electronAPI.onDebugStart(() => {
         setIsProcessing(true)
@@ -308,7 +267,6 @@ const Debug: React.FC<DebugProps> = ({ isProcessing, setIsProcessing }) => {
       })
     ]
 
-    // Set up resize observer
     const updateDimensions = () => {
       if (contentRef.current) {
         let contentHeight = contentRef.current.scrollHeight
@@ -333,7 +291,7 @@ const Debug: React.FC<DebugProps> = ({ isProcessing, setIsProcessing }) => {
       resizeObserver.disconnect()
       cleanupFunctions.forEach((cleanup) => cleanup())
     }
-  }, [queryClient])
+  }, [queryClient, setIsProcessing])
 
   const handleTooltipVisibilityChange = (visible: boolean, height: number) => {
     setIsTooltipVisible(visible)
@@ -352,7 +310,6 @@ const Debug: React.FC<DebugProps> = ({ isProcessing, setIsProcessing }) => {
         <ToastDescription>{toastMessage.description}</ToastDescription>
       </Toast>
 
-      {/* Conditionally render the screenshot queue */}
       <div className="bg-transparent w-fit">
         <div className="pb-3">
           <div className="space-y-3 w-fit">
@@ -365,48 +322,30 @@ const Debug: React.FC<DebugProps> = ({ isProcessing, setIsProcessing }) => {
         </div>
       </div>
 
-      {/* Navbar of commands with the tooltip */}
       <ExtraScreenshotsQueueHelper
         extraScreenshots={extraScreenshots}
         onTooltipVisibilityChange={handleTooltipVisibilityChange}
       />
 
-      {/* Main Content */}
       <div className="w-full text-sm text-black bg-black/60 rounded-md">
         <div className="rounded-lg overflow-hidden">
           <div className="px-4 py-3 space-y-4">
-            {/* Thoughts Section */}
             <ContentSection
               title="What I Changed"
-              content={
-                thoughtsData && (
-                  <div className="space-y-3">
-                    <div className="space-y-1">
-                      {thoughtsData.map((thought, index) => (
-                        <div key={index} className="flex items-start gap-2">
-                          <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-                          <div>{thought}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )
-              }
-              isLoading={!thoughtsData}
+              content={explanation}
+              isLoading={isProcessing || !explanation}
             />
 
-            {/* Code Comparison Section */}
             <CodeComparisonSection
               oldCode={oldCode}
               newCode={newCode}
-              isLoading={!oldCode || !newCode}
+              isLoading={isProcessing || !oldCode || !newCode}
             />
 
-            {/* Complexity Section */}
             <ComplexitySection
               timeComplexity={timeComplexityData}
               spaceComplexity={spaceComplexityData}
-              isLoading={!timeComplexityData || !spaceComplexityData}
+              isLoading={isProcessing || !timeComplexityData || !spaceComplexityData}
             />
           </div>
         </div>

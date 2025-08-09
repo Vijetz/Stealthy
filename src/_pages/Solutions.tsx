@@ -269,7 +269,6 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
       window.electronAPI.onSolutionStart(async () => {
         // Reset UI state for a new solution
         setSolutionData(null)
-        setThoughtsData(null)
         setTimeComplexityData(null)
         setSpaceComplexityData(null)
         setCustomContent(null)
@@ -388,7 +387,9 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
       window.electronAPI.onDebugSuccess((data) => {
         console.log({ debug_data: data })
 
-        queryClient.setQueryData(["new_solution"], data.solution)
+        if (data && data.response) {
+          queryClient.setQueryData(["new_solution"], data.response)
+        }
         setDebugProcessing(false)
       }),
       //when there was an error in the initial debugging, we'll show a toast and stop the little generating pulsing thing.

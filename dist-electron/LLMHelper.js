@@ -101,21 +101,26 @@ Important: Return ONLY the JSON object, without any markdown formatting or code 
     async debugSolutionWithImages(problemInfo, currentCode, debugImagePaths) {
         try {
             const imageParts = await Promise.all(debugImagePaths.map(path => this.fileToGenerativePart(path)));
-            const prompt = `You are an expert programmer. Your task is to analyze the user’s request which may include images of code or problems, and provide a direct code based solution. If the user provides code identify any errors and provide a corrected, complete version. If the user provides a problem description, write the code to solve it. Make sure to provide the most optimal solution.
+            const prompt = `You are an expert programmer. Your task is to debug the provided code based on an image of an error.
       
-You are a wingman. Given:
-1. The original problem or situation: ${JSON.stringify(problemInfo, null, 2)}
-2. The current response or approach: ${currentCode}
-3. The debug information in the provided images
+Given:
+1. The original problem description: ${problemInfo.response.explanation}
+2. The current, incorrect code: 
+\
+${currentCode}
+\
+3. The debug information in the provided images.
 
-Please analyze the debug information and provide feedback in this JSON format:
+Please analyze the error in the image and provide a corrected, complete, and runnable version of the code.
+
+Please provide the output in the following JSON format:
 {
-  "solution": {
-    "code": "The corrected, runnable, comment-free code or main answer here. Do not include any comments in the code.",
-    "problem_statement": "Restate the problem or situation.",
-    "context": "Relevant background/context from the debug images.",
-    "suggested_responses": ["Provide a brief, high-level explanation of the fix.", "If there are alternative solutions, mention one here.", "Explain any key assumptions made."],
-    "reasoning": "Explanation of why the original code was wrong and why the new code is correct."
+  "type": "coding",
+  "response": {
+    "code": "The corrected, runnable, comment-free code solution here.",
+    "explanation": "A brief, high-level explanation of the fix.",
+    "time_complexity": "The time complexity of the corrected solution.",
+    "space_complexity": "The space complexity of the corrected solution."
   }
 }
 Important: Return ONLY the JSON object, without any markdown formatting or code blocks.
