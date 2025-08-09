@@ -53,40 +53,60 @@ const SolutionSection = ({
   title: string
   content: React.ReactNode
   isLoading: boolean
-}) => (
-  <div className="space-y-2">
-    <h2 className="text-[13px] font-medium text-white tracking-wide">
-      {title}
-    </h2>
-    {isLoading ? (
-      <div className="space-y-1.5">
-        <div className="mt-4 flex">
-          <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
-            Loading solutions...
-          </p>
-        </div>
-      </div>
-    ) : (
-      <div className="w-full">
-        <SyntaxHighlighter
-          showLineNumbers
-          language="python"
-          style={dracula}
-          customStyle={{
-            maxWidth: "100%",
-            margin: 0,
-            padding: "1rem",
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-all"
-          }}
-          wrapLongLines={true}
+}) => {
+  const [isCopied, setIsCopied] = useState(false)
+
+  const handleCopy = () => {
+    if (typeof content === "string") {
+      navigator.clipboard.writeText(content)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-between items-center">
+        <h2 className="text-[13px] font-medium text-white tracking-wide">
+          {title}
+        </h2>
+        <button
+          onClick={handleCopy}
+          className="text-xs text-gray-400 hover:text-white"
         >
-          {content as string}
-        </SyntaxHighlighter>
+          {isCopied ? "Copied!" : "Copy"}
+        </button>
       </div>
-    )}
-  </div>
-)
+      {isLoading ? (
+        <div className="space-y-1.5">
+          <div className="mt-4 flex">
+            <p className="text-xs bg-gradient-to-r from-gray-300 via-gray-100 to-gray-300 bg-clip-text text-transparent animate-pulse">
+              Loading solutions...
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="w-full">
+          <SyntaxHighlighter
+            showLineNumbers
+            language="python"
+            style={dracula}
+            customStyle={{
+              maxWidth: "100%",
+              margin: 0,
+              padding: "1rem",
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-all"
+            }}
+            wrapLongLines={true}
+          >
+            {content as string}
+          </SyntaxHighlighter>
+        </div>
+      )}
+    </div>
+  )
+}
 
 export const ComplexitySection = ({
   timeComplexity,
@@ -139,7 +159,6 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
   const [problemStatementData, setProblemStatementData] =
     useState<ProblemStatementData | null>(null)
   const [solutionData, setSolutionData] = useState<string | null>(null)
-  const [thoughtsData, setThoughtsData] = useState<string[] | null>(null)
   const [timeComplexityData, setTimeComplexityData] = useState<string | null>(
     null
   )
@@ -306,16 +325,14 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
         )
         // Reset solutions in the cache (even though this shouldn't ever happen) and complexities to previous states
         const solution = queryClient.getQueryData(["solution"]) as {
-          code: string
-          thoughts: string[]
-          time_complexity: string
+          code: string,
+          time_complexity: string,
           space_complexity: string
         } | null
         if (!solution) {
           setView("queue") //make sure that this is correct. or like make sure there's a toast or something
         }
         setSolutionData(solution?.code || null)
-        setThoughtsData(solution?.thoughts || null)
         setTimeComplexityData(solution?.time_complexity || null)
         setSpaceComplexityData(solution?.space_complexity || null)
         console.error("Processing error:", error)
@@ -331,14 +348,12 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
 
         const solutionData = {
           code: data.solution.code,
-          thoughts: data.solution.thoughts,
           time_complexity: data.solution.time_complexity,
           space_complexity: data.solution.space_complexity
         }
 
         queryClient.setQueryData(["solution"], solutionData)
         setSolutionData(solutionData.code || null)
-        setThoughtsData(solutionData.thoughts || null)
         setTimeComplexityData(solutionData.time_complexity || null)
         setSpaceComplexityData(solutionData.space_complexity || null)
       }),
@@ -423,14 +438,12 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
       }
       if (event?.query.queryKey[0] === "solution") {
         const solution = queryClient.getQueryData(["solution"]) as {
-          code: string
-          thoughts: string[]
-          time_complexity: string
+          code: string,
+          time_complexity: string,
           space_complexity: string
         } | null
 
         setSolutionData(solution?.code ?? null)
-        setThoughtsData(solution?.thoughts ?? null)
         setTimeComplexityData(solution?.time_complexity ?? null)
         setSpaceComplexityData(solution?.space_complexity ?? null)
       }
@@ -517,27 +530,6 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
                     {/* Solution Sections (legacy, only for non-manual) */}
                     {solutionData && (
                       <>
-                        <ContentSection
-                          title="Analysis"
-                          content={
-                            thoughtsData && (
-                              <div className="space-y-3">
-                                <div className="space-y-1">
-                                  {thoughtsData.map((thought, index) => (
-                                    <div
-                                      key={index}
-                                      className="flex items-start gap-2"
-                                    >
-                                      <div className="w-1 h-1 rounded-full bg-blue-400/80 mt-2 shrink-0" />
-                                      <div>{thought}</div>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )
-                          }
-                          isLoading={!thoughtsData}
-                        />
                         <SolutionSection
                           title={problemStatementData?.output_format?.subtype === "voice" ? "Response" : "Solution"}
                           content={solutionData}

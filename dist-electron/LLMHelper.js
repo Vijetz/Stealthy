@@ -8,10 +8,12 @@ const generative_ai_1 = require("@google/generative-ai");
 const fs_1 = __importDefault(require("fs"));
 class LLMHelper {
     model;
-    systemPrompt = `You are Wingman AI, a helpful, proactive assistant for any kind of problem or situation (not just coding). For any user input, analyze the situation, provide a clear problem statement, relevant context, and suggest several possible responses or actions the user could take next. Always explain your reasoning. Present your suggestions as a list of options or next steps.`;
+    //stage 1
+    //   private readonly systemPrompt = `You are Wingman AI, a helpful, proactive assistant for any kind of problem or situation. For any user input, analyze the situation, provide a clear problem statement, relevant context, and suggest several possible responses or actions the user could take next. Always explain your reasoning. Present your suggestions as a list of options or next steps.`
+    systemPrompt = `You are an expert programmer. Your task is to analyze the user’s request which may include images of code or problems, and provide a direct code based solution. If the user provides code identify any errors and provide a corrected, complete version. If the user provides a problem description, write the code to solve it. Make sure to provide the most optimal solution.`;
     constructor(apiKey) {
         const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-        this.model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        this.model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
     }
     async fileToGenerativePart(imagePath) {
         const imageData = await fs_1.default.promises.readFile(imagePath);
@@ -32,12 +34,14 @@ class LLMHelper {
     async extractProblemFromImages(imagePaths) {
         try {
             const imageParts = await Promise.all(imagePaths.map(path => this.fileToGenerativePart(path)));
-            const prompt = `${this.systemPrompt}\n\nYou are a wingman. Please analyze these images and extract the following information in JSON format:\n{
+            const prompt = `You are an expert programmer. Your task is to analyze the user’s request which may include images of code or problems, and provide a direct code based solution. If the user provides code identify any errors and provide a corrected, complete version. If the user provides a problem description, write the code to solve it. Make sure to provide the most optimal solution. Please provide the output in the following JSON format:
+{
   "problem_statement": "A clear statement of the problem or situation depicted in the images.",
-  "context": "Relevant background or context from the images.",
-  "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
-  "reasoning": "Explanation of why these suggestions are appropriate."
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks.`;
+  "context": "Provide the complete, runnable code solution here. This is the most important part.",
+  "suggested_responses": ["Provide a brief, high-level explanation of the code solution.", "If there are alternative solutions, mention one here.", "Explain any key assumptions made."],
+  "reasoning": "Explain the reasoning behind the code structure and why it's an optimal solution."
+}
+Important: Return ONLY the JSON object, without any markdown formatting or code blocks.`;
             const result = await this.model.generateContent([prompt, ...imageParts]);
             const response = await result.response;
             const text = this.cleanJsonResponse(response.text());
@@ -49,15 +53,23 @@ class LLMHelper {
         }
     }
     async generateSolution(problemInfo) {
-        const prompt = `${this.systemPrompt}\n\nGiven this problem or situation:\n${JSON.stringify(problemInfo, null, 2)}\n\nPlease provide your response in the following JSON format:\n{
+        const prompt = `You are an expert programmer. Your task is to analyze the user’s request which may include images of code or problems, and provide a direct code based solution. If the user provides code identify any errors and provide a corrected, complete version. If the user provides a problem description, write the code to solve it. Make sure to provide the most optimal solution.
+    
+Given this problem or situation:\n${JSON.stringify(problemInfo, null, 2)}
+
+Please provide your response in the following JSON format:
+{
   "solution": {
-    "code": "The code or main answer here.",
+    "code": "The code or main answer here. This should be the complete, runnable code solution. Do not include any comments in the code.",
     "problem_statement": "Restate the problem or situation.",
     "context": "Relevant background/context.",
-    "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
-    "reasoning": "Explanation of why these suggestions are appropriate."
+    "suggested_responses": ["Provide a brief, high-level explanation of the code solution.", "If there are alternative solutions, mention one here.", "Explain any key assumptions made."],
+    "reasoning": "Explanation of why these suggestions are appropriate.",
+    "time_complexity": "The time complexity of the solution.",
+    "space_complexity": "The space complexity of the solution."
   }
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks.`;
+}
+Important: Return ONLY the JSON object, without any markdown formatting or code blocks.`;
         console.log("[LLMHelper] Calling Gemini LLM for solution...");
         try {
             const result = await this.model.generateContent(prompt);
@@ -76,15 +88,24 @@ class LLMHelper {
     async debugSolutionWithImages(problemInfo, currentCode, debugImagePaths) {
         try {
             const imageParts = await Promise.all(debugImagePaths.map(path => this.fileToGenerativePart(path)));
-            const prompt = `${this.systemPrompt}\n\nYou are a wingman. Given:\n1. The original problem or situation: ${JSON.stringify(problemInfo, null, 2)}\n2. The current response or approach: ${currentCode}\n3. The debug information in the provided images\n\nPlease analyze the debug information and provide feedback in this JSON format:\n{
+            const prompt = `You are an expert programmer. Your task is to analyze the user’s request which may include images of code or problems, and provide a direct code based solution. If the user provides code identify any errors and provide a corrected, complete version. If the user provides a problem description, write the code to solve it. Make sure to provide the most optimal solution.
+      
+You are a wingman. Given:
+1. The original problem or situation: ${JSON.stringify(problemInfo, null, 2)}
+2. The current response or approach: ${currentCode}
+3. The debug information in the provided images
+
+Please analyze the debug information and provide feedback in this JSON format:
+{
   "solution": {
-    "code": "The code or main answer here.",
+    "code": "The corrected, runnable code or main answer here.",
     "problem_statement": "Restate the problem or situation.",
-    "context": "Relevant background/context.",
-    "suggested_responses": ["First possible answer or action", "Second possible answer or action", "..."],
-    "reasoning": "Explanation of why these suggestions are appropriate."
+    "context": "Relevant background/context from the debug images.",
+    "suggested_responses": ["Provide a brief, high-level explanation of the fix.", "If there are alternative solutions, mention one here.", "Explain any key assumptions made."],
+    "reasoning": "Explanation of why the original code was wrong and why the new code is correct."
   }
-}\nImportant: Return ONLY the JSON object, without any markdown formatting or code blocks.`;
+}
+Important: Return ONLY the JSON object, without any markdown formatting or code blocks.`;
             const result = await this.model.generateContent([prompt, ...imageParts]);
             const response = await result.response;
             const text = this.cleanJsonResponse(response.text());

@@ -56,23 +56,17 @@ export class ProcessingHelper {
         }
       }
 
-      // NEW: Handle screenshot as plain text (like audio)
       mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.INITIAL_START)
       this.appState.setView("solutions")
       this.currentProcessingAbortController = new AbortController()
       try {
-        const imageResult = await this.llmHelper.analyzeImageFile(lastPath);
-        const problemInfo = {
-          problem_statement: imageResult.text,
-          input_format: { description: "Generated from screenshot", parameters: [] as any[] },
-          output_format: { description: "Generated from screenshot", type: "string", subtype: "text" },
-          complexity: { time: "N/A", space: "N/A" },
-          test_cases: [] as any[],
-          validation_type: "manual",
-          difficulty: "custom"
-        };
+        const problemInfo = await this.llmHelper.extractProblemFromImages(screenshotQueue);
         mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.PROBLEM_EXTRACTED, problemInfo);
         this.appState.setProblemInfo(problemInfo);
+
+        const solution = await this.llmHelper.generateSolution(problemInfo);
+        mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.SOLUTION_SUCCESS, solution);
+
       } catch (error: any) {
         console.error("Image processing error:", error)
         mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.INITIAL_SOLUTION_ERROR, error.message)
