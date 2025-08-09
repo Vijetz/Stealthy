@@ -93,7 +93,12 @@ export class WindowHelper {
       fullscreenable: false,
       hasShadow: false,
       backgroundColor: "#00000000",
-      focusable: true
+      focusable: false,
+      acceptFirstMouse: true
+    }
+
+    if (process.platform === 'darwin') {
+      windowSettings.type = 'panel';
     }
 
     this.mainWindow = new BrowserWindow(windowSettings)

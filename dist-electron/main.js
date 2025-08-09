@@ -138,6 +138,9 @@ exports.AppState = AppState;
 // Application initialization
 async function initializeApp() {
     const appState = AppState.getInstance();
+    if (process.platform === 'darwin') {
+        electron_1.app.setActivationPolicy('accessory');
+    }
     // Initialize IPC handlers before window creation
     (0, ipcHandlers_1.initializeIpcHandlers)(appState);
     electron_1.app.whenReady().then(() => {

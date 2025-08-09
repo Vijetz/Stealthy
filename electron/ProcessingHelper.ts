@@ -96,8 +96,10 @@ export class ProcessingHelper {
         }
 
         // Get current solution from state
-        const currentSolution = await this.llmHelper.generateSolution(problemInfo)
-        const currentCode = currentSolution.solution.code
+        const currentCode = problemInfo.response.code
+        if (!currentCode) {
+          throw new Error("No code available in the current solution to debug.")
+        }
 
         // Debug the solution using vision model
         const debugResult = await this.llmHelper.debugSolutionWithImages(

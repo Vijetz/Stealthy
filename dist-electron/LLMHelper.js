@@ -45,7 +45,7 @@ Please provide the output in the following JSON format:
   "type": "coding | general",
   "response": {
     // If type is "coding", this object should contain the following fields:
-    "code": "The complete, runnable code solution here.",
+    "code": "The complete, runnable, comment-free code solution here.",
     "explanation": "A brief, high-level explanation of the code solution.",
     "time_complexity": "The time complexity of the solution.",
     "space_complexity": "The space complexity of the solution.",
@@ -53,7 +53,8 @@ Please provide the output in the following JSON format:
     "answer": "A direct and concise answer to the user's question."
   }
 }
-Important: Return ONLY the JSON object, without any markdown formatting or code blocks.`;
+Important: Return ONLY the JSON object, without any markdown formatting or code blocks.
+CRITICAL: The 'code' field must contain only code. It must not contain any comments, explanations, or any text that is not valid code.`;
             const result = await this.model.generateContent([prompt, ...imageParts]);
             const response = await result.response;
             const text = this.cleanJsonResponse(response.text());
@@ -110,14 +111,15 @@ You are a wingman. Given:
 Please analyze the debug information and provide feedback in this JSON format:
 {
   "solution": {
-    "code": "The corrected, runnable code or main answer here.",
+    "code": "The corrected, runnable, comment-free code or main answer here. Do not include any comments in the code.",
     "problem_statement": "Restate the problem or situation.",
     "context": "Relevant background/context from the debug images.",
     "suggested_responses": ["Provide a brief, high-level explanation of the fix.", "If there are alternative solutions, mention one here.", "Explain any key assumptions made."],
     "reasoning": "Explanation of why the original code was wrong and why the new code is correct."
   }
 }
-Important: Return ONLY the JSON object, without any markdown formatting or code blocks.`;
+Important: Return ONLY the JSON object, without any markdown formatting or code blocks.
+CRITICAL: The 'code' field must contain only code. It must not contain any comments, explanations, or any text that is not valid code.`;
             const result = await this.model.generateContent([prompt, ...imageParts]);
             const response = await result.response;
             const text = this.cleanJsonResponse(response.text());

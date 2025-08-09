@@ -190,6 +190,10 @@ export class AppState {
 async function initializeApp() {
   const appState = AppState.getInstance()
 
+  if (process.platform === 'darwin') {
+    app.setActivationPolicy('accessory');
+  }
+
   // Initialize IPC handlers before window creation
   initializeIpcHandlers(appState)
 

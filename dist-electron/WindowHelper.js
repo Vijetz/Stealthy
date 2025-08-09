@@ -80,8 +80,12 @@ class WindowHelper {
             fullscreenable: false,
             hasShadow: false,
             backgroundColor: "#00000000",
-            focusable: true
+            focusable: false,
+            acceptFirstMouse: true
         };
+        if (process.platform === 'darwin') {
+            windowSettings.type = 'panel';
+        }
         this.mainWindow = new electron_1.BrowserWindow(windowSettings);
         // this.mainWindow.webContents.openDevTools()
         this.mainWindow.setContentProtection(true);
