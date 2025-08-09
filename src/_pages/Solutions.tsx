@@ -58,6 +58,8 @@ const SolutionSection = ({
   isLoading: boolean
 }) => {
   const [isCopied, setIsCopied] = useState(false)
+  const [wpm, setWpm] = useState(100)
+  const [isTyping, setIsTyping] = useState(false)
 
   const handleCopy = () => {
     if (typeof content === "string") {
@@ -67,18 +69,66 @@ const SolutionSection = ({
     }
   }
 
+  const handleWpmChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newWpm = parseInt(event.target.value, 10)
+    setWpm(newWpm)
+    // Ensure updateTypingSpeed exists in electronAPI interface before calling
+    if ('updateTypingSpeed' in window.electronAPI) {
+      (window.electronAPI as any).updateTypingSpeed(newWpm);
+    }
+  }
+
+  const handleType = async () => {
+    if (typeof content === "string") {
+      if (isTyping) {
+        (window.electronAPI as any).stopTyping()
+        setIsTyping(false)
+      } else {
+        setIsTyping(true)
+        const result = await (window.electronAPI as any).typeText(content)
+        if (!result.success) {
+          console.error("Typing error:", result.message)
+        }
+        setIsTyping(false)
+      }
+    }
+  }
+
   return (
     <div className="space-y-2">
       <div className="flex justify-between items-center">
         <h2 className="text-[13px] font-medium text-white tracking-wide">
           {title}
         </h2>
-        <button
-          onClick={handleCopy}
-          className="text-xs text-gray-400 hover:text-white"
-        >
-          {isCopied ? "Copied!" : <Copy size={14} />}
-        </button>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400">{wpm} WPM</span>
+            <input
+              type="range"
+              min="80"
+              max="180"
+              value={wpm}
+              onChange={handleWpmChange}
+              className="w-24"
+            />
+          </div>
+          <button
+            onClick={handleType}
+            className={`text-xs ${
+              isTyping
+                ? "text-red-500 hover:text-red-400"
+                : "text-gray-400 hover:text-white"
+            }`}
+          >
+            {isTyping ? "Stop" : "Type"}
+          </button>
+          <button
+            onClick={handleCopy}
+            className="text-xs text-gray-400 hover:text-white"
+          >
+            {isCopied ? "Copied!" : <Copy size={14} />}
+          </button>
+        </div>
       </div>
       {isLoading ? (
         <div className="space-y-1.5">

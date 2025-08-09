@@ -30,8 +30,13 @@ interface ElectronAPI {
   moveWindowRight: () => Promise<void>
   analyzeAudioFromBase64: (data: string, mimeType: string) => Promise<{ text: string; timestamp: number }>
   analyzeAudioFile: (path: string) => Promise<{ text: string; timestamp: number }>
-  analyzeImageFile: (path: string) => Promise<void>
+  analyzeImageFile: (path: string) => Promise<any>
   quitApp: () => Promise<void>
+
+  // Typing simulation
+  typeText: (text: string) => Promise<{ success: boolean; message?: string }>
+  updateTypingSpeed: (wpm: number) => void
+  stopTyping: () => void
 }
 
 export const PROCESSING_EVENTS = {
@@ -165,5 +170,10 @@ contextBridge.exposeInMainWorld("electronAPI", {
   analyzeAudioFromBase64: (data: string, mimeType: string) => ipcRenderer.invoke("analyze-audio-base64", data, mimeType),
   analyzeAudioFile: (path: string) => ipcRenderer.invoke("analyze-audio-file", path),
   analyzeImageFile: (path: string) => ipcRenderer.invoke("analyze-image-file", path),
-  quitApp: () => ipcRenderer.invoke("quit-app")
-} as ElectronAPI)
+  quitApp: () => ipcRenderer.invoke("quit-app"),
+
+  // Typing simulation
+  typeText: (text: string) => ipcRenderer.invoke("type-text", text),
+  updateTypingSpeed: (wpm: number) => ipcRenderer.invoke("update-typing-speed", wpm),
+  stopTyping: () => ipcRenderer.invoke("stop-typing")
+})

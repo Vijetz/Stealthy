@@ -22,11 +22,17 @@ export interface ElectronAPI {
   moveWindowRight: () => Promise<void>
   analyzeAudioFromBase64: (data: string, mimeType: string) => Promise<{ text: string; timestamp: number }>
   analyzeAudioFile: (path: string) => Promise<{ text: string; timestamp: number }>
-  quitApp: () => Promise<void>
+  analyzeImageFile: (path: string) => Promise<any>
+  quitApp: () => void
+
+  // Typing simulation
+  typeText: (text: string) => Promise<{ success: boolean; message?: string }>
+  updateTypingSpeed: (wpm: number) => void
+  stopTyping: () => void
 }
 
 declare global {
   interface Window {
     electronAPI: ElectronAPI
   }
-} 
+}

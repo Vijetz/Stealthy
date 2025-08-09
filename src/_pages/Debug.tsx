@@ -32,6 +32,8 @@ const CodeComparisonSection = ({
   isLoading: boolean
 }) => {
   const [isCopied, setIsCopied] = useState(false)
+  const [wpm, setWpm] = useState(100)
+  const [isTyping, setIsTyping] = useState(false)
 
   const handleCopy = () => {
     if (newCode) {
@@ -40,6 +42,29 @@ const CodeComparisonSection = ({
       setTimeout(() => setIsCopied(false), 2000)
     }
   }
+
+  const handleWpmChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const newWpm = parseInt(event.target.value, 10)
+    setWpm(newWpm)
+    window.electronAPI.updateTypingSpeed(newWpm)
+  }
+
+  const handleType = async () => {
+    if (newCode) {
+      if (isTyping) {
+        window.electronAPI.stopTyping()
+        setIsTyping(false)
+      } else {
+        setIsTyping(true)
+        const result = await window.electronAPI.typeText(newCode)
+        if (!result.success) {
+          console.error("Typing error:", result.message)
+        }
+        setIsTyping(false)
+      }
+    }
+  }
+
   const computeDiff = () => {
     if (!oldCode || !newCode) return { leftLines: [], rightLines: [] }
 
@@ -130,12 +155,35 @@ const CodeComparisonSection = ({
               <h3 className="text-[11px] font-medium text-gray-200">
                 New Version
               </h3>
-              <button
-                onClick={handleCopy}
-                className="text-xs text-gray-400 hover:text-white"
-              >
-                {isCopied ? "Copied!" : <Copy size={14} />}
-              </button>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">{wpm} WPM</span>
+                  <input
+                    type="range"
+                    min="80"
+                    max="180"
+                    value={wpm}
+                    onChange={handleWpmChange}
+                    className="w-24"
+                  />
+                </div>
+                <button
+                  onClick={handleType}
+                  className={`text-xs ${
+                    isTyping
+                      ? "text-red-500 hover:text-red-400"
+                      : "text-gray-400 hover:text-white"
+                  }`}
+                >
+                  {isTyping ? "Stop" : "Type"}
+                </button>
+                <button
+                  onClick={handleCopy}
+                  className="text-xs text-gray-400 hover:text-white"
+                >
+                  {isCopied ? "Copied!" : <Copy size={14} />}
+                </button>
+              </div>
             </div>
             <div className="p-3 overflow-x-auto">
               <SyntaxHighlighter
