@@ -57,11 +57,12 @@ class ProcessingHelper {
             this.appState.setView("solutions");
             this.currentProcessingAbortController = new AbortController();
             try {
-                const problemInfo = await this.llmHelper.extractProblemFromImages(screenshotQueue);
-                mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.PROBLEM_EXTRACTED, problemInfo);
-                this.appState.setProblemInfo(problemInfo);
-                const solution = await this.llmHelper.generateSolution(problemInfo);
-                mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.SOLUTION_SUCCESS, solution);
+                const result = await this.llmHelper.extractProblemFromImages(screenshotQueue);
+                // We can now directly send the result to the frontend.
+                // The frontend will need to be updated to handle this new structure.
+                mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.SOLUTION_SUCCESS, result);
+                // We also need to store the problem info for debugging.
+                this.appState.setProblemInfo(result);
             }
             catch (error) {
                 console.error("Image processing error:", error);

@@ -166,6 +166,7 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
     null
   )
   const [customContent, setCustomContent] = useState<string | null>(null)
+  const [questionType, setQuestionType] = useState<"coding" | "general" | null>(null)
 
   const [toastOpen, setToastOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<ToastMessage>({
@@ -338,24 +339,42 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
         console.error("Processing error:", error)
       }),
       //when the initial solution is generated, we'll set the solution data to that
-      window.electronAPI.onSolutionSuccess((data) => {
-        if (!data?.solution) {
+      window.electronAPI.onSolutionSuccess((data: { type: 'coding' | 'general', response: any }) => {
+        if (!data || !data.type || !data.response) {
           console.warn("Received empty or invalid solution data")
           return
         }
 
-        console.log({ solution: data.solution })
+        console.log({ solution: data });
+        setQuestionType(data.type);
 
-        const solutionData = {
-          code: data.solution.code,
-          time_complexity: data.solution.time_complexity,
-          space_complexity: data.solution.space_complexity
+        if (data.type === 'coding') {
+          const solutionData = {
+            code: data.response.code,
+            time_complexity: data.response.time_complexity,
+            space_complexity: data.response.space_complexity,
+            explanation: data.response.explanation,
+          }
+
+          queryClient.setQueryData(["solution"], solutionData)
+          setSolutionData(solutionData.code || null)
+          setTimeComplexityData(solutionData.time_complexity || null)
+          setSpaceComplexityData(solutionData.space_complexity || null)
+          setProblemStatementData({ problem_statement: solutionData.explanation, validation_type: 'coding' });
+
+        } else if (data.type === 'general') {
+          const solutionData = {
+            code: data.response.answer, // Use 'code' to fit into existing state
+            time_complexity: 'N/A',
+            space_complexity: 'N/A',
+            explanation: data.response.answer,
+          }
+          queryClient.setQueryData(["solution"], solutionData)
+          setSolutionData(solutionData.code || null)
+          setTimeComplexityData(solutionData.time_complexity || null)
+          setSpaceComplexityData(solutionData.space_complexity || null)
+          setProblemStatementData({ problem_statement: "Answer", validation_type: 'general' });
         }
-
-        queryClient.setQueryData(["solution"], solutionData)
-        setSolutionData(solutionData.code || null)
-        setTimeComplexityData(solutionData.time_complexity || null)
-        setSpaceComplexityData(solutionData.space_complexity || null)
       }),
 
       //########################################################
@@ -527,22 +546,27 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
                         </p>
                       </div>
                     )}
-                    {/* Solution Sections (legacy, only for non-manual) */}
-                    {solutionData && (
+                    {/* Solution Sections */}
+                    {solutionData && questionType === 'coding' && (
                       <>
                         <SolutionSection
-                          title={problemStatementData?.output_format?.subtype === "voice" ? "Response" : "Solution"}
+                          title={"Solution"}
                           content={solutionData}
                           isLoading={!solutionData}
                         />
-                        {problemStatementData?.output_format?.subtype !== "voice" && (
-                          <ComplexitySection
-                            timeComplexity={timeComplexityData}
-                            spaceComplexity={spaceComplexityData}
-                            isLoading={!timeComplexityData || !spaceComplexityData}
-                          />
-                        )}
+                        <ComplexitySection
+                          timeComplexity={timeComplexityData}
+                          spaceComplexity={spaceComplexityData}
+                          isLoading={!timeComplexityData || !spaceComplexityData}
+                        />
                       </>
+                    )}
+                    {solutionData && questionType === 'general' && (
+                      <ContentSection
+                        title={"Answer"}
+                        content={solutionData}
+                        isLoading={!solutionData}
+                      />
                     )}
                   </>
                 )}

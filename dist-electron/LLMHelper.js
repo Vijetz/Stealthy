@@ -34,12 +34,24 @@ class LLMHelper {
     async extractProblemFromImages(imagePaths) {
         try {
             const imageParts = await Promise.all(imagePaths.map(path => this.fileToGenerativePart(path)));
-            const prompt = `You are an expert programmer. Your task is to analyze the user’s request which may include images of code or problems, and provide a direct code based solution. If the user provides code identify any errors and provide a corrected, complete version. If the user provides a problem description, write the code to solve it. Make sure to provide the most optimal solution. Please provide the output in the following JSON format:
+            const prompt = `You are an expert AI assistant. Your task is to analyze the user's request, which may include images. First, classify the request as either a "coding" problem or a "general" question.
+
+If it's a "coding" problem, provide a direct code-based solution. If the user provides code, identify any errors and provide a corrected, complete version. If the user provides a problem description, write the code to solve it.
+
+If it's a "general" question (like a multiple-choice question or a general knowledge query), provide a direct, concise answer.
+
+Please provide the output in the following JSON format:
 {
-  "problem_statement": "A clear statement of the problem or situation depicted in the images.",
-  "context": "Provide the complete, runnable code solution here. This is the most important part.",
-  "suggested_responses": ["Provide a brief, high-level explanation of the code solution.", "If there are alternative solutions, mention one here.", "Explain any key assumptions made."],
-  "reasoning": "Explain the reasoning behind the code structure and why it's an optimal solution."
+  "type": "coding | general",
+  "response": {
+    // If type is "coding", this object should contain the following fields:
+    "code": "The complete, runnable code solution here.",
+    "explanation": "A brief, high-level explanation of the code solution.",
+    "time_complexity": "The time complexity of the solution.",
+    "space_complexity": "The space complexity of the solution.",
+    // If type is "general", this object should contain the following field:
+    "answer": "A direct and concise answer to the user's question."
+  }
 }
 Important: Return ONLY the JSON object, without any markdown formatting or code blocks.`;
             const result = await this.model.generateContent([prompt, ...imageParts]);
