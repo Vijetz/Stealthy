@@ -15,6 +15,7 @@ import {
 import { ProblemStatementData } from "../types/solutions"
 import { AudioResult } from "../types/audio"
 import SolutionCommands from "../components/Solutions/SolutionCommands"
+import { Copy } from "lucide-react"
 import Debug from "./Debug"
 
 // (Using global ElectronAPI type from src/types/electron.d.ts)
@@ -74,7 +75,7 @@ const SolutionSection = ({
           onClick={handleCopy}
           className="text-xs text-gray-400 hover:text-white"
         >
-          {isCopied ? "Copied!" : "Copy"}
+          {isCopied ? "Copied!" : <Copy size={14} />}
         </button>
       </div>
       {isLoading ? (

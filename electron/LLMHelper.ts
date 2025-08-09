@@ -119,7 +119,7 @@ Please provide the output in the following JSON format:
 {
   "type": "coding",
   "response": {
-    "code": "The corrected, runnable, comment-free code solution here.",
+    "code": "The corrected, runnable, comment-free code solution here. Do not include any comments in the code. This is a strict requirement.",
     "explanation": "A brief, high-level explanation of the fix.",
     "time_complexity": "The time complexity of the corrected solution.",
     "space_complexity": "The space complexity of the corrected solution."

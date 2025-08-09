@@ -13,6 +13,7 @@ import {
   ToastVariant
 } from "../components/ui/toast"
 import ExtraScreenshotsQueueHelper from "../components/Solutions/SolutionCommands"
+import { Copy } from "lucide-react"
 import { diffLines } from "diff"
 
 type DiffLine = {
@@ -30,6 +31,15 @@ const CodeComparisonSection = ({
   newCode: string | null
   isLoading: boolean
 }) => {
+  const [isCopied, setIsCopied] = useState(false)
+
+  const handleCopy = () => {
+    if (newCode) {
+      navigator.clipboard.writeText(newCode)
+      setIsCopied(true)
+      setTimeout(() => setIsCopied(false), 2000)
+    }
+  }
   const computeDiff = () => {
     if (!oldCode || !newCode) return { leftLines: [], rightLines: [] }
 
@@ -116,10 +126,16 @@ const CodeComparisonSection = ({
           </div>
 
           <div className="w-1/2">
-            <div className="bg-[#2d333b] px-3 py-1.5">
+            <div className="flex justify-between items-center bg-[#2d333b] px-3 py-1.5">
               <h3 className="text-[11px] font-medium text-gray-200">
                 New Version
               </h3>
+              <button
+                onClick={handleCopy}
+                className="text-xs text-gray-400 hover:text-white"
+              >
+                {isCopied ? "Copied!" : <Copy size={14} />}
+              </button>
             </div>
             <div className="p-3 overflow-x-auto">
               <SyntaxHighlighter
@@ -152,6 +168,7 @@ const CodeComparisonSection = ({
     </div>
   )
 }
+
 
 interface DebugProps {
   isProcessing: boolean
