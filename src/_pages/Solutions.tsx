@@ -1,3 +1,5 @@
+
+
 // Solutions.tsx
 import React, { useState, useEffect, useRef } from "react"
 import { useQuery, useQueryClient } from "react-query"
@@ -360,7 +362,25 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
           setSolutionData(solutionData.code || null)
           setTimeComplexityData(solutionData.time_complexity || null)
           setSpaceComplexityData(solutionData.space_complexity || null)
-          setProblemStatementData({ problem_statement: solutionData.explanation, validation_type: 'coding' });
+          setProblemStatementData({
+            problem_statement: solutionData.explanation,
+            validation_type: 'coding',
+            input_format: {
+              description: "Coding problem input",
+              parameters: []
+            },
+            output_format: {
+              description: "Code solution",
+              type: "string",
+              subtype: "code"
+            },
+            complexity: {
+              time: solutionData.time_complexity || "N/A",
+              space: solutionData.space_complexity || "N/A"
+            },
+            test_cases: [],
+            difficulty: "custom"
+          });
 
         } else if (data.type === 'general') {
           const solutionData = {
@@ -373,7 +393,25 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
           setSolutionData(solutionData.code || null)
           setTimeComplexityData(solutionData.time_complexity || null)
           setSpaceComplexityData(solutionData.space_complexity || null)
-          setProblemStatementData({ problem_statement: "Answer", validation_type: 'general' });
+          setProblemStatementData({
+            problem_statement: "Answer",
+            validation_type: 'general',
+            input_format: {
+              description: "General question input",
+              parameters: []
+            },
+            output_format: {
+              description: "Text response",
+              type: "string",
+              subtype: "text"
+            },
+            complexity: {
+              time: "N/A",
+              space: "N/A"
+            },
+            test_cases: [],
+            difficulty: "custom"
+          });
         }
       }),
 
@@ -452,7 +490,7 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
             difficulty: "custom"
           });
           setSolutionData(null); // Reset solution to trigger loading state
-          setThoughtsData(null);
+// Remove setThoughtsData since it's not defined and not needed
           setTimeComplexityData(null);
           setSpaceComplexityData(null);
         }
@@ -580,5 +618,4 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
     </>
   )
 }
-
 export default Solutions
