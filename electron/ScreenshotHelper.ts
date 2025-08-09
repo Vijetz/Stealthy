@@ -5,6 +5,7 @@ import fs from "node:fs"
 import { app } from "electron"
 import { v4 as uuidv4 } from "uuid"
 import screenshot from "screenshot-desktop"
+import sharp from "sharp" // NEW
 
 export class ScreenshotHelper {
   private screenshotQueue: string[] = []
@@ -81,10 +82,21 @@ export class ScreenshotHelper {
     hideMainWindow()
     let screenshotPath = ""
 
-    if (this.view === "queue") {
-      screenshotPath = path.join(this.screenshotDir, `${uuidv4()}.png`)
-      await screenshot({ filename: screenshotPath })
+    const captureAndCompress = async (dir: string) => {
+      const rawPath = path.join(dir, `${uuidv4()}.png`)
+      await screenshot({ filename: rawPath })
 
+      const compressedPath = rawPath.replace(/\.png$/, "-min.jpg")
+      await sharp(rawPath)
+        .resize({ width: 1024 })           // ⇢ tune size as desired
+        .jpeg({ quality: 70 })            // ⇢ tune quality as desired
+        .toFile(compressedPath)
+      await fs.promises.unlink(rawPath)    // remove large original
+      return compressedPath
+    }
+
+    if (this.view === "queue") {
+      screenshotPath = await captureAndCompress(this.screenshotDir)
       this.screenshotQueue.push(screenshotPath)
       if (this.screenshotQueue.length > this.MAX_SCREENSHOTS) {
         const removedPath = this.screenshotQueue.shift()
@@ -97,9 +109,7 @@ export class ScreenshotHelper {
         }
       }
     } else {
-      screenshotPath = path.join(this.extraScreenshotDir, `${uuidv4()}.png`)
-      await screenshot({ filename: screenshotPath })
-
+      screenshotPath = await captureAndCompress(this.extraScreenshotDir)
       this.extraScreenshotQueue.push(screenshotPath)
       if (this.extraScreenshotQueue.length > this.MAX_SCREENSHOTS) {
         const removedPath = this.extraScreenshotQueue.shift()

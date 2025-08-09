@@ -10,6 +10,7 @@ const node_fs_1 = __importDefault(require("node:fs"));
 const electron_1 = require("electron");
 const uuid_1 = require("uuid");
 const screenshot_desktop_1 = __importDefault(require("screenshot-desktop"));
+const sharp_1 = __importDefault(require("sharp")); // NEW
 class ScreenshotHelper {
     screenshotQueue = [];
     extraScreenshotQueue = [];
@@ -63,9 +64,19 @@ class ScreenshotHelper {
     async takeScreenshot(hideMainWindow, showMainWindow) {
         hideMainWindow();
         let screenshotPath = "";
+        const captureAndCompress = async (dir) => {
+            const rawPath = node_path_1.default.join(dir, `${(0, uuid_1.v4)()}.png`);
+            await (0, screenshot_desktop_1.default)({ filename: rawPath });
+            const compressedPath = rawPath.replace(/\.png$/, "-min.jpg");
+            await (0, sharp_1.default)(rawPath)
+                .resize({ width: 1024 }) // ⇢ tune size as desired
+                .jpeg({ quality: 70 }) // ⇢ tune quality as desired
+                .toFile(compressedPath);
+            await node_fs_1.default.promises.unlink(rawPath); // remove large original
+            return compressedPath;
+        };
         if (this.view === "queue") {
-            screenshotPath = node_path_1.default.join(this.screenshotDir, `${(0, uuid_1.v4)()}.png`);
-            await (0, screenshot_desktop_1.default)({ filename: screenshotPath });
+            screenshotPath = await captureAndCompress(this.screenshotDir);
             this.screenshotQueue.push(screenshotPath);
             if (this.screenshotQueue.length > this.MAX_SCREENSHOTS) {
                 const removedPath = this.screenshotQueue.shift();
@@ -80,8 +91,7 @@ class ScreenshotHelper {
             }
         }
         else {
-            screenshotPath = node_path_1.default.join(this.extraScreenshotDir, `${(0, uuid_1.v4)()}.png`);
-            await (0, screenshot_desktop_1.default)({ filename: screenshotPath });
+            screenshotPath = await captureAndCompress(this.extraScreenshotDir);
             this.extraScreenshotQueue.push(screenshotPath);
             if (this.extraScreenshotQueue.length > this.MAX_SCREENSHOTS) {
                 const removedPath = this.extraScreenshotQueue.shift();
