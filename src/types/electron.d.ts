@@ -26,9 +26,16 @@ export interface ElectronAPI {
   quitApp: () => void
 
   // Typing simulation
-  typeText: (text: string) => Promise<{ success: boolean; message?: string }>
+  typeText: (
+    text: string,
+    options: { autoIndent: boolean; autoBrackets: boolean }
+  ) => Promise<{ success: boolean; message?: string }>
   updateTypingSpeed: (wpm: number) => void
   stopTyping: () => void
+
+  // Event listeners
+  on: (channel: string, callback: (...args: any[]) => void) => void
+  removeListener: (channel: string, callback: (...args: any[]) => void) => void
 }
 
 declare global {

@@ -17,7 +17,7 @@ import {
 import { ProblemStatementData } from "../types/solutions"
 import { AudioResult } from "../types/audio"
 import SolutionCommands from "../components/Solutions/SolutionCommands"
-import { Copy } from "lucide-react"
+import { Copy, Square, Pilcrow, Braces } from "lucide-react"
 import Debug from "./Debug"
 
 // (Using global ElectronAPI type from src/types/electron.d.ts)
@@ -60,6 +60,8 @@ const SolutionSection = ({
   const [isCopied, setIsCopied] = useState(false)
   const [wpm, setWpm] = useState(100)
   const [isTyping, setIsTyping] = useState(false)
+  const [autoIndent, setAutoIndent] = useState(true)
+  const [autoBrackets, setAutoBrackets] = useState(true)
 
   const handleCopy = () => {
     if (typeof content === "string") {
@@ -78,21 +80,30 @@ const SolutionSection = ({
     }
   }
 
-  const handleType = async () => {
-    if (typeof content === "string") {
-      if (isTyping) {
-        (window.electronAPI as any).stopTyping()
-        setIsTyping(false)
-      } else {
-        setIsTyping(true)
-        const result = await (window.electronAPI as any).typeText(content)
-        if (!result.success) {
-          console.error("Typing error:", result.message)
-        }
-        setIsTyping(false)
-      }
+  const handleType = () => {
+    if (isTyping) {
+      window.electronAPI.stopTyping()
+      setIsTyping(false)
+    } else {
+      window.electronAPI.typeText(content as string, {
+        autoIndent,
+        autoBrackets
+      })
+      setIsTyping(true)
     }
   }
+
+  useEffect(() => {
+    const onTypingEnd = () => {
+      setIsTyping(false)
+    }
+
+    window.electronAPI.on("typing-finished", onTypingEnd)
+
+    return () => {
+      window.electronAPI.removeListener("typing-finished", onTypingEnd)
+    }
+  }, [])
 
   return (
     <div className="space-y-2">
@@ -100,7 +111,25 @@ const SolutionSection = ({
         <h2 className="text-[13px] font-medium text-white tracking-wide">
           {title}
         </h2>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setAutoIndent(!autoIndent)}
+              className={`text-xs p-1 rounded ${autoIndent ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-400 hover:bg-gray-600"}`}
+              title={autoIndent ? "Auto Indent: On" : "Auto Indent: Off"}
+              disabled={isTyping}
+            >
+              <Pilcrow size={14} />
+            </button>
+            <button
+              onClick={() => setAutoBrackets(!autoBrackets)}
+              className={`text-xs p-1 rounded ${autoBrackets ? "bg-blue-600 text-white" : "bg-gray-700 text-gray-400 hover:bg-gray-600"}`}
+              title={autoBrackets ? "Auto Brackets: On" : "Auto Brackets: Off"}
+              disabled={isTyping}
+            >
+              <Braces size={14} />
+            </button>
+          </div>
           <div className="flex items-center gap-2">
             <span className="text-xs text-gray-400">{wpm} WPM</span>
             <input
@@ -110,21 +139,26 @@ const SolutionSection = ({
               value={wpm}
               onChange={handleWpmChange}
               className="w-24"
+              disabled={isTyping}
             />
           </div>
           <button
             onClick={handleType}
-            className={`text-xs ${
-              isTyping
-                ? "text-red-500 hover:text-red-400"
-                : "text-gray-400 hover:text-white"
-            }`}
+            className={`text-xs px-2 py-1 rounded ${isTyping ? "bg-red-500 text-white hover:bg-red-600" : "bg-gray-700 text-gray-300 hover:bg-gray-600"}`}
           >
-            {isTyping ? "Stop" : "Type"}
+            {isTyping ? (
+              <span className="flex items-center gap-1.5">
+                <Square size={12} />
+                Stop
+              </span>
+            ) : (
+              "Type"
+            )}
           </button>
           <button
             onClick={handleCopy}
-            className="text-xs text-gray-400 hover:text-white"
+            className="text-xs text-gray-400 hover:text-white disabled:opacity-50"
+            disabled={isTyping}
           >
             {isCopied ? "Copied!" : <Copy size={14} />}
           </button>

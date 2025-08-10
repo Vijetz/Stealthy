@@ -34,7 +34,10 @@ interface ElectronAPI {
   quitApp: () => Promise<void>
 
   // Typing simulation
-  typeText: (text: string) => Promise<{ success: boolean; message?: string }>
+  typeText: (
+    text: string,
+    options: { autoIndent: boolean; autoBrackets: boolean }
+  ) => Promise<{ success: boolean; message?: string }>
   updateTypingSpeed: (wpm: number) => void
   stopTyping: () => void
 }
@@ -173,7 +176,17 @@ contextBridge.exposeInMainWorld("electronAPI", {
   quitApp: () => ipcRenderer.invoke("quit-app"),
 
   // Typing simulation
-  typeText: (text: string) => ipcRenderer.invoke("type-text", text),
-  updateTypingSpeed: (wpm: number) => ipcRenderer.invoke("update-typing-speed", wpm),
-  stopTyping: () => ipcRenderer.invoke("stop-typing")
+  typeText: (text: string, options: { autoIndent: boolean; autoBrackets: boolean }) =>
+    ipcRenderer.invoke("type-text", text, options),
+  updateTypingSpeed: (wpm: number) =>
+    ipcRenderer.invoke("update-typing-speed", wpm),
+  stopTyping: () => ipcRenderer.invoke("stop-typing"),
+
+  // Generic event listener for renderer -> main
+  on: (channel: string, callback: (...args: any[]) => void) => {
+    ipcRenderer.on(channel, (event, ...args) => callback(...args))
+  },
+  removeListener: (channel: string, callback: (...args: any[]) => void) => {
+    ipcRenderer.removeListener(channel, callback)
+  }
 })

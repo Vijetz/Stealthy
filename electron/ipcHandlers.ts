@@ -116,11 +116,16 @@ const shiftKeyMap: { [key: string]: number } = {
 // --- Helper Functions ---
 
 function calculateTypingDelay(currentWpm: number): number {
-  const wpmFluctuation = currentWpm * 0.25
-  const fluctuatingWpm =
-    currentWpm + Math.random() * wpmFluctuation * 2 - wpmFluctuation
-  const cps = Math.max(fluctuatingWpm, 10) / 60 / 5 // Chars per sec, avg word length 5
-  return 1000 / cps
+  if (currentWpm <= 0) return 0 // Avoid division by zero
+
+  // Average word length is 5 characters. WPM -> Characters per minute -> Chars per second
+  const charactersPerMinute = currentWpm * 5
+  const charactersPerSecond = charactersPerMinute / 60
+
+  // Add some randomness to make it feel more human
+  const baseDelay = 1000 / charactersPerSecond
+  const randomFactor = Math.random() * 0.5 + 0.75 // Fluctuation between 75% and 125% of the base delay
+  return baseDelay * randomFactor
 }
 
 async function tapKey(char: string) {
@@ -145,56 +150,48 @@ async function tapKey(char: string) {
   }
 }
 
-async function typeHumanLike(text: string) {
+async function typeHumanLike(text: string, appState: AppState) {
   isTyping = true
   stopTypingFlag = false
 
-  const typeText = async (text: string) => {
-    isTyping = true
-    stopTypingFlag = false
-  
-    // Correctly calculate delay from WPM
-    // Assumes average word length of 5 chars
-    const delay = 60000 / (wpm * 5)
-  
-    for (const char of text) {
-      if (stopTypingFlag) {
-        console.log("Typing stopped by user.")
-        break
-      }
+  const lines = text.split('\n');
 
-      const delay = calculateTypingDelay(wpm)
-      await new Promise((resolve) => setTimeout(resolve, delay))
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmedLine = line.trimLeft();
 
-      // Simulate typos
-      if (Math.random() < 0.02) {
-        // 2% chance of a typo
-        const randomChar = String.fromCharCode(97 + Math.floor(Math.random() * 26))
-        await tapKey(randomChar)
-        await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 100))
-        uIOhook.keyTap(UiohookKey.Backspace as any)
-        await new Promise((resolve) => setTimeout(resolve, 50 + Math.random() * 50))
-      }
-
-      // Simulate pauses
-      if (
-        [".", ",", "(", ")", "{", "}", ";", "\n"].includes(char) ||
-        Math.random() < 0.04
-      ) {
-        await new Promise((resolve) => setTimeout(resolve, 200 + Math.random() * 300))
-      }
-
-      await tapKey(char)
+    for (const char of trimmedLine) {
+        if (stopTypingFlag) {
+            console.log("Typing stopped by user.");
+            break;
+        }
+        await tapKey(char);
+        const delay = calculateTypingDelay(wpm);
+        await new Promise(resolve => setTimeout(resolve, delay));
     }
 
-    isTyping = false
-    stopTypingFlag = false
+    if (stopTypingFlag) {
+        break;
+    }
+
+    // After typing the line, press Enter, but not for the last line
+    if (i < lines.length - 1) {
+        await tapKey('\n');
+        const delay = calculateTypingDelay(wpm);
+        await new Promise(resolve => setTimeout(resolve, delay));
+    }
   }
 
-function initializeIpcHandlers(appState: AppState): void {
-    uIOhook.start()
-    ipcMain.handle(
-      "update-content-dimensions",
+  isTyping = false
+  stopTypingFlag = false
+  // Notify the renderer process that typing has finished
+  appState.getMainWindow()?.webContents.send("typing-finished")
+}
+
+export function initializeIpcHandlers(appState: AppState): void {
+  uIOhook.start()
+  ipcMain.handle(
+    "update-content-dimensions",
       async (event, { width, height }: { width: number; height: number }) => {
         if (width && height) {
           appState.setWindowDimensions(width, height)
@@ -207,7 +204,7 @@ function initializeIpcHandlers(appState: AppState): void {
         return { success: false, message: "Already typing." }
       }
       // Don't await, let it run in the background
-      typeHumanLike(text)
+      typeHumanLike(text, appState)
       return { success: true }
     })
 
@@ -218,9 +215,7 @@ function initializeIpcHandlers(appState: AppState): void {
     })
 
     ipcMain.handle("stop-typing", () => {
-      if (isTyping) {
-        stopTypingFlag = true
-      }
+      stopTypingFlag = true
     })
 
     ipcMain.handle("delete-screenshot", async (event, path: string) => {
@@ -316,4 +311,4 @@ function initializeIpcHandlers(appState: AppState): void {
     ipcMain.handle("quit-app", () => {
       app.quit()
     })
-  }}
+}

@@ -112,10 +112,15 @@ const shiftKeyMap = {
 };
 // --- Helper Functions ---
 function calculateTypingDelay(currentWpm) {
-    const wpmFluctuation = currentWpm * 0.25;
-    const fluctuatingWpm = currentWpm + Math.random() * wpmFluctuation * 2 - wpmFluctuation;
-    const cps = Math.max(fluctuatingWpm, 10) / 60 / 5; // Chars per sec, avg word length 5
-    return 1000 / cps;
+    if (currentWpm <= 0)
+        return 0; // Avoid division by zero
+    // Average word length is 5 characters. WPM -> Characters per minute -> Chars per second
+    const charactersPerMinute = currentWpm * 5;
+    const charactersPerSecond = charactersPerMinute / 60;
+    // Add some randomness to make it feel more human
+    const baseDelay = 1000 / charactersPerSecond;
+    const randomFactor = Math.random() * 0.5 + 0.75; // Fluctuation between 75% and 125% of the base delay
+    return baseDelay * randomFactor;
 }
 async function tapKey(char) {
     const isShift = shiftKeyMap[char] !== undefined;
@@ -137,34 +142,36 @@ async function tapKey(char) {
         console.error("Error tapping key. Is uiohook running?", e);
     }
 }
-async function typeHumanLike(text) {
+async function typeHumanLike(text, appState) {
     isTyping = true;
     stopTypingFlag = false;
-    for (const char of text) {
+    const lines = text.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        const trimmedLine = line.trimLeft();
+        for (const char of trimmedLine) {
+            if (stopTypingFlag) {
+                console.log("Typing stopped by user.");
+                break;
+            }
+            await tapKey(char);
+            const delay = calculateTypingDelay(wpm);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
         if (stopTypingFlag) {
-            console.log("Typing stopped by user.");
             break;
         }
-        const delay = calculateTypingDelay(wpm);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        // Simulate typos
-        if (Math.random() < 0.02) {
-            // 2% chance of a typo
-            const randomChar = String.fromCharCode(97 + Math.floor(Math.random() * 26));
-            await tapKey(randomChar);
-            await new Promise((resolve) => setTimeout(resolve, 100 + Math.random() * 100));
-            uiohook_napi_1.uIOhook.keyTap(uiohook_napi_1.UiohookKey.Backspace);
-            await new Promise((resolve) => setTimeout(resolve, 50 + Math.random() * 50));
+        // After typing the line, press Enter, but not for the last line
+        if (i < lines.length - 1) {
+            await tapKey('\n');
+            const delay = calculateTypingDelay(wpm);
+            await new Promise(resolve => setTimeout(resolve, delay));
         }
-        // Simulate pauses
-        if ([".", ",", "(", ")", "{", "}", ";", "\n"].includes(char) ||
-            Math.random() < 0.04) {
-            await new Promise((resolve) => setTimeout(resolve, 200 + Math.random() * 300));
-        }
-        await tapKey(char);
     }
     isTyping = false;
     stopTypingFlag = false;
+    // Notify the renderer process that typing has finished
+    appState.getMainWindow()?.webContents.send("typing-finished");
 }
 function initializeIpcHandlers(appState) {
     uiohook_napi_1.uIOhook.start();
@@ -178,7 +185,7 @@ function initializeIpcHandlers(appState) {
             return { success: false, message: "Already typing." };
         }
         // Don't await, let it run in the background
-        typeHumanLike(text);
+        typeHumanLike(text, appState);
         return { success: true };
     });
     electron_1.ipcMain.handle("update-typing-speed", (event, newWpm) => {
@@ -187,9 +194,7 @@ function initializeIpcHandlers(appState) {
         }
     });
     electron_1.ipcMain.handle("stop-typing", () => {
-        if (isTyping) {
-            stopTypingFlag = true;
-        }
+        stopTypingFlag = true;
     });
     electron_1.ipcMain.handle("delete-screenshot", async (event, path) => {
         return appState.deleteScreenshot(path);

@@ -113,8 +113,15 @@ electron_1.contextBridge.exposeInMainWorld("electronAPI", {
     analyzeImageFile: (path) => electron_1.ipcRenderer.invoke("analyze-image-file", path),
     quitApp: () => electron_1.ipcRenderer.invoke("quit-app"),
     // Typing simulation
-    typeText: (text) => electron_1.ipcRenderer.invoke("type-text", text),
+    typeText: (text, options) => electron_1.ipcRenderer.invoke("type-text", text, options),
     updateTypingSpeed: (wpm) => electron_1.ipcRenderer.invoke("update-typing-speed", wpm),
-    stopTyping: () => electron_1.ipcRenderer.invoke("stop-typing")
+    stopTyping: () => electron_1.ipcRenderer.invoke("stop-typing"),
+    // Generic event listener for renderer -> main
+    on: (channel, callback) => {
+        electron_1.ipcRenderer.on(channel, (event, ...args) => callback(...args));
+    },
+    removeListener: (channel, callback) => {
+        electron_1.ipcRenderer.removeListener(channel, callback);
+    }
 });
 //# sourceMappingURL=preload.js.map
