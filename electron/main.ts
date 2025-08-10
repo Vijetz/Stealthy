@@ -1,5 +1,5 @@
 import { app, BrowserWindow } from "electron"
-import { initializeIpcHandlers } from "./ipcHandlers"
+import { registerIpcHandlers } from "./ipcHandlers"
 import { WindowHelper } from "./WindowHelper"
 import { ScreenshotHelper } from "./ScreenshotHelper"
 import { ShortcutsHelper } from "./shortcuts"
@@ -195,7 +195,7 @@ async function initializeApp() {
   }
 
   // Initialize IPC handlers before window creation
-  initializeIpcHandlers(appState)
+  registerIpcHandlers(appState)
 
   app.whenReady().then(() => {
     console.log("App is ready")

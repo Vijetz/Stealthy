@@ -150,45 +150,58 @@ async function tapKey(char: string) {
   }
 }
 
-async function typeHumanLike(text: string, appState: AppState) {
+async function typeHumanLike(
+  text: string,
+  options: { autoIndent: boolean; autoBrackets: boolean },
+  appState: AppState
+) {
   isTyping = true
   stopTypingFlag = false
 
-  const lines = text.split('\n');
+  const lines = text.split("\n")
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const trimmedLine = line.trimLeft();
+    if (stopTypingFlag) break
 
-    for (const char of trimmedLine) {
-        if (stopTypingFlag) {
-            console.log("Typing stopped by user.");
-            break;
-        }
-        await tapKey(char);
-        const delay = calculateTypingDelay(wpm);
-        await new Promise(resolve => setTimeout(resolve, delay));
+    let lineToType = lines[i]
+
+    if (options.autoIndent) {
+      lineToType = lineToType.trimLeft()
+    }
+
+    for (const char of lineToType) {
+      if (stopTypingFlag) {
+        console.log("Typing stopped by user.")
+        break
+      }
+
+      if (options.autoBrackets && char === "}") {
+        uIOhook.keyTap(UiohookKey.ArrowDown)
+      } else {
+        await tapKey(char)
+      }
+
+      const delay = calculateTypingDelay(wpm)
+      await new Promise((resolve) => setTimeout(resolve, delay))
     }
 
     if (stopTypingFlag) {
-        break;
+      break
     }
 
-    // After typing the line, press Enter, but not for the last line
     if (i < lines.length - 1) {
-        await tapKey('\n');
-        const delay = calculateTypingDelay(wpm);
-        await new Promise(resolve => setTimeout(resolve, delay));
+      await tapKey("\n")
+      const delay = calculateTypingDelay(wpm)
+      await new Promise((resolve) => setTimeout(resolve, delay))
     }
   }
 
   isTyping = false
   stopTypingFlag = false
-  // Notify the renderer process that typing has finished
   appState.getMainWindow()?.webContents.send("typing-finished")
 }
 
-export function initializeIpcHandlers(appState: AppState): void {
+export function registerIpcHandlers(appState: AppState): void {
   uIOhook.start()
   ipcMain.handle(
     "update-content-dimensions",
@@ -199,14 +212,18 @@ export function initializeIpcHandlers(appState: AppState): void {
       }
     )
 
-    ipcMain.handle("type-text", async (event, text: string) => {
-      if (isTyping) {
-        return { success: false, message: "Already typing." }
+    ipcMain.handle(
+      "type-text",
+      async (event, text: string, options: { autoIndent: boolean; autoBrackets: boolean }) => {
+        if (isTyping) {
+          return { success: false, message: "Already typing." }
+        }
+        const finalOptions = options || { autoIndent: false, autoBrackets: false }
+        // Don't await, let it run in the background
+        typeHumanLike(text, finalOptions, appState)
+        return { success: true }
       }
-      // Don't await, let it run in the background
-      typeHumanLike(text, appState)
-      return { success: true }
-    })
+    )
 
     ipcMain.handle("update-typing-speed", (event, newWpm: number) => {
       if (newWpm >= 80 && newWpm <= 180) {

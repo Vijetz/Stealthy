@@ -1,7 +1,7 @@
 "use strict";
 // ipcHandlers.ts
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.initializeIpcHandlers = initializeIpcHandlers;
+exports.registerIpcHandlers = registerIpcHandlers;
 const electron_1 = require("electron");
 const uiohook_napi_1 = require("uiohook-napi");
 // --- Typing Simulation State ---
@@ -142,50 +142,58 @@ async function tapKey(char) {
         console.error("Error tapping key. Is uiohook running?", e);
     }
 }
-async function typeHumanLike(text, appState) {
+async function typeHumanLike(text, options, appState) {
     isTyping = true;
     stopTypingFlag = false;
-    const lines = text.split('\n');
+    const lines = text.split("\n");
     for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        const trimmedLine = line.trimLeft();
-        for (const char of trimmedLine) {
+        if (stopTypingFlag)
+            break;
+        let lineToType = lines[i];
+        if (options.autoIndent) {
+            lineToType = lineToType.trimLeft();
+        }
+        for (const char of lineToType) {
             if (stopTypingFlag) {
                 console.log("Typing stopped by user.");
                 break;
             }
-            await tapKey(char);
+            if (options.autoBrackets && char === "}") {
+                uiohook_napi_1.uIOhook.keyTap(uiohook_napi_1.UiohookKey.ArrowDown);
+            }
+            else {
+                await tapKey(char);
+            }
             const delay = calculateTypingDelay(wpm);
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise((resolve) => setTimeout(resolve, delay));
         }
         if (stopTypingFlag) {
             break;
         }
-        // After typing the line, press Enter, but not for the last line
         if (i < lines.length - 1) {
-            await tapKey('\n');
+            await tapKey("\n");
             const delay = calculateTypingDelay(wpm);
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await new Promise((resolve) => setTimeout(resolve, delay));
         }
     }
     isTyping = false;
     stopTypingFlag = false;
-    // Notify the renderer process that typing has finished
     appState.getMainWindow()?.webContents.send("typing-finished");
 }
-function initializeIpcHandlers(appState) {
+function registerIpcHandlers(appState) {
     uiohook_napi_1.uIOhook.start();
     electron_1.ipcMain.handle("update-content-dimensions", async (event, { width, height }) => {
         if (width && height) {
             appState.setWindowDimensions(width, height);
         }
     });
-    electron_1.ipcMain.handle("type-text", async (event, text) => {
+    electron_1.ipcMain.handle("type-text", async (event, text, options) => {
         if (isTyping) {
             return { success: false, message: "Already typing." };
         }
+        const finalOptions = options || { autoIndent: false, autoBrackets: false };
         // Don't await, let it run in the background
-        typeHumanLike(text, appState);
+        typeHumanLike(text, finalOptions, appState);
         return { success: true };
     });
     electron_1.ipcMain.handle("update-typing-speed", (event, newWpm) => {

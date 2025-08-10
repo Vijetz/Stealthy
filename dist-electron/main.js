@@ -142,7 +142,7 @@ async function initializeApp() {
         electron_1.app.setActivationPolicy('accessory');
     }
     // Initialize IPC handlers before window creation
-    (0, ipcHandlers_1.initializeIpcHandlers)(appState);
+    (0, ipcHandlers_1.registerIpcHandlers)(appState);
     electron_1.app.whenReady().then(() => {
         console.log("App is ready");
         appState.createWindow();
