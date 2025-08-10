@@ -36,16 +36,16 @@ const keyMap = {
     x: uiohook_napi_1.UiohookKey.X,
     y: uiohook_napi_1.UiohookKey.Y,
     z: uiohook_napi_1.UiohookKey.Z,
-    "0": 2, // Using raw keycodes for numbers
-    "1": 3,
-    "2": 4,
-    "3": 5,
-    "4": 6,
-    "5": 7,
-    "6": 8,
-    "7": 9,
-    "8": 10,
-    "9": 11,
+    "0": uiohook_napi_1.UiohookKey['0'],
+    "1": uiohook_napi_1.UiohookKey['1'],
+    "2": uiohook_napi_1.UiohookKey['2'],
+    "3": uiohook_napi_1.UiohookKey['3'],
+    "4": uiohook_napi_1.UiohookKey['4'],
+    "5": uiohook_napi_1.UiohookKey['5'],
+    "6": uiohook_napi_1.UiohookKey['6'],
+    "7": uiohook_napi_1.UiohookKey['7'],
+    "8": uiohook_napi_1.UiohookKey['8'],
+    "9": uiohook_napi_1.UiohookKey['9'],
     " ": uiohook_napi_1.UiohookKey.Space,
     "\n": uiohook_napi_1.UiohookKey.Enter,
     "\t": uiohook_napi_1.UiohookKey.Tab,
@@ -88,16 +88,16 @@ const shiftKeyMap = {
     X: uiohook_napi_1.UiohookKey.X,
     Y: uiohook_napi_1.UiohookKey.Y,
     Z: uiohook_napi_1.UiohookKey.Z,
-    "!": 2, // Key 1
-    "@": 3, // Key 2
-    "#": 4, // Key 3
-    $: 5, // Key 4
-    "%": 6, // Key 5
-    "^": 7, // Key 6
-    "&": 8, // Key 7
-    "*": 9, // Key 8
-    "(": 10, // Key 9
-    ")": 11, // Key 0
+    "!": uiohook_napi_1.UiohookKey['1'], // Shift + 1
+    "@": uiohook_napi_1.UiohookKey['2'], // Shift + 2
+    "#": uiohook_napi_1.UiohookKey['3'], // Shift + 3
+    "$": uiohook_napi_1.UiohookKey['4'], // Shift + 4
+    "%": uiohook_napi_1.UiohookKey['5'], // Shift + 5
+    "^": uiohook_napi_1.UiohookKey['6'], // Shift + 6
+    "&": uiohook_napi_1.UiohookKey['7'], // Shift + 7
+    "*": uiohook_napi_1.UiohookKey['8'], // Shift + 8
+    "(": uiohook_napi_1.UiohookKey['9'], // Shift + 9
+    ")": uiohook_napi_1.UiohookKey['0'], // Shift + 0
     _: uiohook_napi_1.UiohookKey.Minus,
     "+": uiohook_napi_1.UiohookKey.Equal,
     "{": uiohook_napi_1.UiohookKey.BracketLeft,

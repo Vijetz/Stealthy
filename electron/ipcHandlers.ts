@@ -37,16 +37,16 @@ const keyMap: { [key: string]: number } = {
   x: UiohookKey.X,
   y: UiohookKey.Y,
   z: UiohookKey.Z,
-  "0": 2, // Using raw keycodes for numbers
-  "1": 3,
-  "2": 4,
-  "3": 5,
-  "4": 6,
-  "5": 7,
-  "6": 8,
-  "7": 9,
-  "8": 10,
-  "9": 11,
+  "0": UiohookKey['0'],
+  "1": UiohookKey['1'],
+  "2": UiohookKey['2'],
+  "3": UiohookKey['3'],
+  "4": UiohookKey['4'],
+  "5": UiohookKey['5'],
+  "6": UiohookKey['6'],
+  "7": UiohookKey['7'],
+  "8": UiohookKey['8'],
+  "9": UiohookKey['9'],
   " ": UiohookKey.Space,
   "\n": UiohookKey.Enter,
   "\t": UiohookKey.Tab,
@@ -90,16 +90,16 @@ const shiftKeyMap: { [key: string]: number } = {
   X: UiohookKey.X,
   Y: UiohookKey.Y,
   Z: UiohookKey.Z,
-  "!": 2, // Key 1
-  "@": 3, // Key 2
-  "#": 4, // Key 3
-  $: 5, // Key 4
-  "%": 6, // Key 5
-  "^": 7, // Key 6
-  "&": 8, // Key 7
-  "*": 9, // Key 8
-  "(": 10, // Key 9
-  ")": 11, // Key 0
+  "!": UiohookKey['1'], // Shift + 1
+  "@": UiohookKey['2'], // Shift + 2
+  "#": UiohookKey['3'], // Shift + 3
+  "$": UiohookKey['4'], // Shift + 4
+  "%": UiohookKey['5'], // Shift + 5
+  "^": UiohookKey['6'], // Shift + 6
+  "&": UiohookKey['7'], // Shift + 7
+  "*": UiohookKey['8'], // Shift + 8
+  "(": UiohookKey['9'], // Shift + 9
+  ")": UiohookKey['0'], // Shift + 0
   _: UiohookKey.Minus,
   "+": UiohookKey.Equal,
   "{": UiohookKey.BracketLeft,
