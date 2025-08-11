@@ -114,8 +114,11 @@ const shiftKeyMap = {
 function calculateTypingDelay(currentWpm) {
     if (currentWpm <= 0)
         return 0; // Avoid division by zero
+    // Introduce WPM variation of +-35%
+    const wpmVariation = currentWpm * (Math.random() * 0.7 - 0.35); // +-35%
+    const variedWpm = currentWpm + wpmVariation;
     // Average word length is 5 characters. WPM -> Characters per minute -> Chars per second
-    const charactersPerMinute = currentWpm * 5;
+    const charactersPerMinute = variedWpm * 5;
     const charactersPerSecond = charactersPerMinute / 60;
     // Add some randomness to make it feel more human
     const baseDelay = 1000 / charactersPerSecond;
@@ -157,6 +160,10 @@ async function typeHumanLike(text, options, appState) {
             if (stopTypingFlag) {
                 console.log("Typing stopped by user.");
                 break;
+            }
+            // Occasionally pause for a slightly longer duration
+            if (Math.random() < 0.20) { // 5% chance of a longer pause
+                await new Promise((resolve) => setTimeout(resolve, calculateTypingDelay(wpm) * 3));
             }
             if (options.autoBrackets && char === "}") {
                 uiohook_napi_1.uIOhook.keyTap(uiohook_napi_1.UiohookKey.ArrowDown);
