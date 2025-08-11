@@ -1,6 +1,5 @@
 import { GoogleGenerativeAI, GenerativeModel } from "@google/generative-ai"
 import fs from "fs"
-
 export class LLMHelper {
   private model: GenerativeModel
   //stage 1
@@ -8,7 +7,7 @@ export class LLMHelper {
   private readonly systemPrompt = `You are an expert programmer. Your task is to analyze the user’s request which may include images of code or problems, and provide a direct code based solution. If the user provides code identify any errors and provide a corrected, complete version. If the user provides a problem description, write the code to solve it. Make sure to provide the most optimal solution.`
   constructor(apiKey: string) {
     const genAI = new GoogleGenerativeAI(apiKey)
-    this.model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
+    this.model = genAI.getGenerativeModel({ model: process.env.GEMINI_PRO_MODEL })
   }
 
   private async fileToGenerativePart(imagePath: string) {
