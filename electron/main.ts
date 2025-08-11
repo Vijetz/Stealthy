@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from "electron"
+import { app, BrowserWindow, ipcMain } from "electron"
 import { registerIpcHandlers } from "./ipcHandlers"
 import { WindowHelper } from "./WindowHelper"
 import { ScreenshotHelper } from "./ScreenshotHelper"
@@ -196,6 +196,13 @@ async function initializeApp() {
 
   // Initialize IPC handlers before window creation
   registerIpcHandlers(appState)
+
+  ipcMain.handle('get-model-names', () => {
+    return {
+      pro: process.env.GEMINI_PRO_MODEL,
+      flash: process.env.GEMINI_FLASH_MODEL
+    }
+  })
 
   app.whenReady().then(() => {
     console.log("App is ready")

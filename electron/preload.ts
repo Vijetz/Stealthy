@@ -32,6 +32,8 @@ interface ElectronAPI {
   analyzeAudioFile: (path: string) => Promise<{ text: string; timestamp: number }>
   analyzeImageFile: (path: string) => Promise<any>
   quitApp: () => Promise<void>
+  setModel: (modelName: string) => Promise<{ success: boolean; error?: string }>
+  getModelNames: () => Promise<{ pro: string; flash: string }>
 
   // Typing simulation
   typeText: (
@@ -174,6 +176,8 @@ contextBridge.exposeInMainWorld("electronAPI", {
   analyzeAudioFile: (path: string) => ipcRenderer.invoke("analyze-audio-file", path),
   analyzeImageFile: (path: string) => ipcRenderer.invoke("analyze-image-file", path),
   quitApp: () => ipcRenderer.invoke("quit-app"),
+  setModel: (modelName: string) => ipcRenderer.invoke("set-model", modelName),
+  getModelNames: () => ipcRenderer.invoke("get-model-names"),
 
   // Typing simulation
   typeText: (text: string, options: { autoIndent: boolean; autoBrackets: boolean }) =>

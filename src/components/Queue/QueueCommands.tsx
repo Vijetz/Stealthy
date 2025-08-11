@@ -16,6 +16,19 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null)
   const [audioResult, setAudioResult] = useState<string | null>(null)
   const chunks = useRef<Blob[]>([])
+  const [isFlashMode, setIsFlashMode] = useState(false)
+  const [modelNames, setModelNames] = useState({ pro: '', flash: '' })
+
+  useEffect(() => {
+    const savedFlashMode = localStorage.getItem('isFlashMode') === 'true'
+    setIsFlashMode(savedFlashMode)
+
+    window.electronAPI.getModelNames().then(names => {
+      setModelNames(names)
+      const model = savedFlashMode ? names.flash : names.pro
+      window.electronAPI.setModel(model)
+    })
+  }, [])
 
   useEffect(() => {
     let tooltipHeight = 0
@@ -67,6 +80,16 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
       setIsRecording(false)
       setMediaRecorder(null)
     }
+  }
+
+  const handleFlashModeToggle = () => {
+    setIsFlashMode(prev => {
+      const newFlashMode = !prev
+      localStorage.setItem('isFlashMode', newFlashMode.toString())
+      const model = newFlashMode ? modelNames.flash : modelNames.pro
+      window.electronAPI.setModel(model)
+      return newFlashMode
+    })
   }
 
   return (
@@ -129,6 +152,16 @@ const QueueCommands: React.FC<QueueCommandsProps> = ({
             )}
           </button>
         </div>
+
+        {/* Flash Button */}
+        <button
+          className={`w-6 h-6 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-colors flex items-center justify-center cursor-pointer ${isFlashMode ? 'bg-yellow-500/70' : ''}`}
+          onClick={handleFlashModeToggle}
+          aria-pressed={isFlashMode}
+          title="Toggle Flash Mode"
+        >
+          <span className="text-xs text-white/70">⚡︎</span>
+        </button>
 
         {/* Question mark with tooltip */}
         <div

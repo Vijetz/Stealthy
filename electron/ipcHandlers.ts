@@ -337,4 +337,14 @@ export function registerIpcHandlers(appState: AppState): void {
     ipcMain.handle("quit-app", () => {
       app.quit()
     })
+
+    ipcMain.handle("set-model", (event, modelName: string) => {
+      try {
+        appState.processingHelper.getLLMHelper().setModel(modelName)
+        return { success: true }
+      } catch (error: any) {
+        console.error("Error setting model:", error)
+        return { success: false, error: error.message }
+      }
+    })
 }

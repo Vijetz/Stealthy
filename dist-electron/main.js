@@ -143,6 +143,12 @@ async function initializeApp() {
     }
     // Initialize IPC handlers before window creation
     (0, ipcHandlers_1.registerIpcHandlers)(appState);
+    electron_1.ipcMain.handle('get-model-names', () => {
+        return {
+            pro: process.env.GEMINI_PRO_MODEL,
+            flash: process.env.GEMINI_FLASH_MODEL
+        };
+    });
     electron_1.app.whenReady().then(() => {
         console.log("App is ready");
         appState.createWindow();

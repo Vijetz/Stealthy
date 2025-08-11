@@ -8,12 +8,17 @@ const generative_ai_1 = require("@google/generative-ai");
 const fs_1 = __importDefault(require("fs"));
 class LLMHelper {
     model;
+    genAI;
     //stage 1
     //   private readonly systemPrompt = `You are Wingman AI, a helpful, proactive assistant for any kind of problem or situation. For any user input, analyze the situation, provide a clear problem statement, relevant context, and suggest several possible responses or actions the user could take next. Always explain your reasoning. Present your suggestions as a list of options or next steps.`
     systemPrompt = `You are an expert programmer. Your task is to analyze the user’s request which may include images of code or problems, and provide a direct code based solution. If the user provides code identify any errors and provide a corrected, complete version. If the user provides a problem description, write the code to solve it. Make sure to provide the most optimal solution.`;
     constructor(apiKey) {
-        const genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
-        this.model = genAI.getGenerativeModel({ model: process.env.GEMINI_PRO_MODEL });
+        this.genAI = new generative_ai_1.GoogleGenerativeAI(apiKey);
+        this.model = this.genAI.getGenerativeModel({ model: process.env.GEMINI_PRO_MODEL });
+    }
+    setModel(modelName) {
+        console.log("LLMHelper: setting model to", modelName);
+        this.model = this.genAI.getGenerativeModel({ model: modelName });
     }
     async fileToGenerativePart(imagePath) {
         const imageData = await fs_1.default.promises.readFile(imagePath);

@@ -299,5 +299,15 @@ function registerIpcHandlers(appState) {
     electron_1.ipcMain.handle("quit-app", () => {
         electron_1.app.quit();
     });
+    electron_1.ipcMain.handle("set-model", (event, modelName) => {
+        try {
+            appState.processingHelper.getLLMHelper().setModel(modelName);
+            return { success: true };
+        }
+        catch (error) {
+            console.error("Error setting model:", error);
+            return { success: false, error: error.message };
+        }
+    });
 }
 //# sourceMappingURL=ipcHandlers.js.map

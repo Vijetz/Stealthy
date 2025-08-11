@@ -112,6 +112,8 @@ electron_1.contextBridge.exposeInMainWorld("electronAPI", {
     analyzeAudioFile: (path) => electron_1.ipcRenderer.invoke("analyze-audio-file", path),
     analyzeImageFile: (path) => electron_1.ipcRenderer.invoke("analyze-image-file", path),
     quitApp: () => electron_1.ipcRenderer.invoke("quit-app"),
+    setModel: (modelName) => electron_1.ipcRenderer.invoke("set-model", modelName),
+    getModelNames: () => electron_1.ipcRenderer.invoke("get-model-names"),
     // Typing simulation
     typeText: (text, options) => electron_1.ipcRenderer.invoke("type-text", text, options),
     updateTypingSpeed: (wpm) => electron_1.ipcRenderer.invoke("update-typing-speed", wpm),
