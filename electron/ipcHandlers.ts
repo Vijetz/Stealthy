@@ -184,6 +184,16 @@ async function typeHumanLike(
         await new Promise((resolve) => setTimeout(resolve, calculateTypingDelay(wpm) * 3));
       }
 
+      //closing brackets delete version,  uncomment and comment the downArrow technique to enable this
+    //   if (options.autoBrackets && char === "{") {
+    //     await tapKey(char)
+    //     uIOhook.keyTap(UiohookKey.ArrowRight);
+    //     uIOhook.keyTap(UiohookKey.Backspace);
+    //   } else {
+    //     await tapKey(char)
+    //   }
+
+      //downArrow technique
       if (options.autoBrackets && char === "}") {
         uIOhook.keyTap(UiohookKey.ArrowDown)
       } else {

@@ -9,7 +9,7 @@ export class ShortcutsHelper {
   }
 
   public registerGlobalShortcuts(): void {
-    globalShortcut.register("CommandOrControl+H", async () => {
+    globalShortcut.register("Control+J", async () => {
       const mainWindow = this.appState.getMainWindow()
       if (mainWindow) {
         console.log("Taking screenshot...")
@@ -26,11 +26,11 @@ export class ShortcutsHelper {
       }
     })
 
-    globalShortcut.register("CommandOrControl+Enter", async () => {
+    globalShortcut.register("Control+Enter", async () => {
       await this.appState.processingHelper.processScreenshots()
     })
 
-    globalShortcut.register("CommandOrControl+R", () => {
+    globalShortcut.register("Control+R", () => {
       console.log(
         "Command + R pressed. Canceling requests and resetting queues..."
       )
@@ -54,25 +54,25 @@ export class ShortcutsHelper {
     })
 
     // New shortcuts for moving the window
-    globalShortcut.register("CommandOrControl+Left", () => {
+    globalShortcut.register("Control+Left", () => {
       console.log("Command/Ctrl + Left pressed. Moving window left.")
       this.appState.moveWindowLeft()
     })
 
-    globalShortcut.register("CommandOrControl+Right", () => {
+    globalShortcut.register("Control+Right", () => {
       console.log("Command/Ctrl + Right pressed. Moving window right.")
       this.appState.moveWindowRight()
     })
-    globalShortcut.register("CommandOrControl+Down", () => {
+    globalShortcut.register("Control+Down", () => {
       console.log("Command/Ctrl + down pressed. Moving window down.")
       this.appState.moveWindowDown()
     })
-    globalShortcut.register("CommandOrControl+Up", () => {
+    globalShortcut.register("Control+Up", () => {
       console.log("Command/Ctrl + Up pressed. Moving window Up.")
       this.appState.moveWindowUp()
     })
 
-    globalShortcut.register("CommandOrControl+B", () => {
+    globalShortcut.register("Control+B", () => {
       this.appState.toggleMainWindow()
       // If window exists and we're showing it, bring it to front
       const mainWindow = this.appState.getMainWindow()

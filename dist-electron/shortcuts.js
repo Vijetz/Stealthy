@@ -8,7 +8,7 @@ class ShortcutsHelper {
         this.appState = appState;
     }
     registerGlobalShortcuts() {
-        electron_1.globalShortcut.register("CommandOrControl+H", async () => {
+        electron_1.globalShortcut.register("Control+J", async () => {
             const mainWindow = this.appState.getMainWindow();
             if (mainWindow) {
                 console.log("Taking screenshot...");
@@ -25,10 +25,10 @@ class ShortcutsHelper {
                 }
             }
         });
-        electron_1.globalShortcut.register("CommandOrControl+Enter", async () => {
+        electron_1.globalShortcut.register("Control+Enter", async () => {
             await this.appState.processingHelper.processScreenshots();
         });
-        electron_1.globalShortcut.register("CommandOrControl+R", () => {
+        electron_1.globalShortcut.register("Control+R", () => {
             console.log("Command + R pressed. Canceling requests and resetting queues...");
             // Cancel ongoing API requests
             this.appState.processingHelper.cancelOngoingRequests();
@@ -44,23 +44,23 @@ class ShortcutsHelper {
             }
         });
         // New shortcuts for moving the window
-        electron_1.globalShortcut.register("CommandOrControl+Left", () => {
+        electron_1.globalShortcut.register("Control+Left", () => {
             console.log("Command/Ctrl + Left pressed. Moving window left.");
             this.appState.moveWindowLeft();
         });
-        electron_1.globalShortcut.register("CommandOrControl+Right", () => {
+        electron_1.globalShortcut.register("Control+Right", () => {
             console.log("Command/Ctrl + Right pressed. Moving window right.");
             this.appState.moveWindowRight();
         });
-        electron_1.globalShortcut.register("CommandOrControl+Down", () => {
+        electron_1.globalShortcut.register("Control+Down", () => {
             console.log("Command/Ctrl + down pressed. Moving window down.");
             this.appState.moveWindowDown();
         });
-        electron_1.globalShortcut.register("CommandOrControl+Up", () => {
+        electron_1.globalShortcut.register("Control+Up", () => {
             console.log("Command/Ctrl + Up pressed. Moving window Up.");
             this.appState.moveWindowUp();
         });
-        electron_1.globalShortcut.register("CommandOrControl+B", () => {
+        electron_1.globalShortcut.register("Control+B", () => {
             this.appState.toggleMainWindow();
             // If window exists and we're showing it, bring it to front
             const mainWindow = this.appState.getMainWindow();
