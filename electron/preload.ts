@@ -22,6 +22,7 @@ interface ElectronAPI {
   onProcessingNoScreenshots: (callback: () => void) => () => void
   onProblemExtracted: (callback: (data: any) => void) => () => void
   onSolutionSuccess: (callback: (data: any) => void) => () => void
+  onTypeCode: (callback: (code: string) => void) => () => void
 
   onUnauthorized: (callback: () => void) => () => void
   onDebugError: (callback: (error: string) => void) => () => void
@@ -161,6 +162,13 @@ contextBridge.exposeInMainWorld("electronAPI", {
         PROCESSING_EVENTS.SOLUTION_SUCCESS,
         subscription
       )
+    }
+  },
+  onTypeCode: (callback: (code: string) => void) => {
+    const subscription = (_: any, code: string) => callback(code)
+    ipcRenderer.on("type-code", subscription)
+    return () => {
+      ipcRenderer.removeListener("type-code", subscription)
     }
   },
   onUnauthorized: (callback: () => void) => {

@@ -24,7 +24,7 @@ class ProcessingHelper {
         }
         this.llmHelper = new LLMHelper_1.LLMHelper(apiKey);
     }
-    async processScreenshots() {
+    async processScreenshots(shouldAutoType = false) {
         const mainWindow = this.appState.getMainWindow();
         if (!mainWindow)
             return;
@@ -63,6 +63,9 @@ class ProcessingHelper {
                 mainWindow.webContents.send(this.appState.PROCESSING_EVENTS.SOLUTION_SUCCESS, result);
                 // We also need to store the problem info for debugging.
                 this.appState.setProblemInfo(result);
+                if (shouldAutoType && result.type === 'coding' && result.response.code) {
+                    this.appState.typeCodeInRenderer(result.response.code);
+                }
             }
             catch (error) {
                 console.error("Image processing error:", error);

@@ -29,7 +29,7 @@ class ShortcutsHelper {
             await this.appState.processingHelper.processScreenshots();
         });
         electron_1.globalShortcut.register("Control+Shift+Enter", async () => {
-            await this.appState.processingHelper.processScreenshots();
+            await this.appState.processingHelper.processScreenshots(true);
         });
         electron_1.globalShortcut.register("Control+R", () => {
             console.log("Command + R pressed. Canceling requests and resetting queues...");

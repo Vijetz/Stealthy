@@ -33,6 +33,7 @@ declare global {
       onSolutionError: (callback: (error: string) => void) => () => void
       onSolutionSuccess: (callback: (data: any) => void) => () => void
       onProblemExtracted: (callback: (data: any) => void) => () => void
+      onTypeCode: (callback: (code: string) => void) => () => void
 
       onDebugSuccess: (callback: (data: any) => void) => () => void
 
@@ -46,6 +47,7 @@ declare global {
       moveWindowLeft: () => Promise<void>
       moveWindowRight: () => Promise<void>
       quitApp: () => Promise<void>
+      typeText: (text: string, options: { autoIndent: boolean; autoBrackets: boolean }) => Promise<{ success: boolean; message?: string }>
     }
   }
 }
@@ -150,6 +152,16 @@ const App: React.FC = () => {
       })
     ]
     return () => cleanupFunctions.forEach((cleanup) => cleanup())
+  }, [])
+
+  useEffect(() => {
+    const cleanup = window.electronAPI.onTypeCode((code: string) => {
+      window.electronAPI.typeText(code, { autoIndent: true, autoBrackets: true })
+    })
+
+    return () => {
+      cleanup()
+    }
   }, [])
 
   return (

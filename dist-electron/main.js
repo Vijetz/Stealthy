@@ -133,6 +133,12 @@ class AppState {
     getHasDebugged() {
         return this.hasDebugged;
     }
+    typeCodeInRenderer(code) {
+        const mainWindow = this.getMainWindow();
+        if (mainWindow) {
+            mainWindow.webContents.send("type-code", code);
+        }
+    }
 }
 exports.AppState = AppState;
 // Application initialization

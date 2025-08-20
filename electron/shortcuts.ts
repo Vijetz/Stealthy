@@ -31,7 +31,7 @@ export class ShortcutsHelper {
     })
 
     globalShortcut.register("Control+Shift+Enter", async () => {
-      await this.appState.processingHelper.processScreenshots()
+      await this.appState.processingHelper.processScreenshots(true)
     })
 
     globalShortcut.register("Control+R", () => {

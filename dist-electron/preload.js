@@ -99,6 +99,13 @@ electron_1.contextBridge.exposeInMainWorld("electronAPI", {
             electron_1.ipcRenderer.removeListener(exports.PROCESSING_EVENTS.SOLUTION_SUCCESS, subscription);
         };
     },
+    onTypeCode: (callback) => {
+        const subscription = (_, code) => callback(code);
+        electron_1.ipcRenderer.on("type-code", subscription);
+        return () => {
+            electron_1.ipcRenderer.removeListener("type-code", subscription);
+        };
+    },
     onUnauthorized: (callback) => {
         const subscription = () => callback();
         electron_1.ipcRenderer.on(exports.PROCESSING_EVENTS.UNAUTHORIZED, subscription);

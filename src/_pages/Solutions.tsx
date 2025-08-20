@@ -51,15 +51,18 @@ export const ContentSection = ({
 const SolutionSection = ({
   title,
   content,
-  isLoading
+  isLoading,
+  isTyping,
+  handleType
 }: {
   title: string
   content: React.ReactNode
   isLoading: boolean
+  isTyping: boolean
+  handleType: () => void
 }) => {
   const [isCopied, setIsCopied] = useState(false)
   const [wpm, setWpm] = useState(100)
-  const [isTyping, setIsTyping] = useState(false)
   const [autoIndent, setAutoIndent] = useState(true)
   const [autoBrackets, setAutoBrackets] = useState(true)
 
@@ -79,31 +82,6 @@ const SolutionSection = ({
       (window.electronAPI as any).updateTypingSpeed(newWpm);
     }
   }
-
-  const handleType = () => {
-    if (isTyping) {
-      window.electronAPI.stopTyping()
-      setIsTyping(false)
-    } else {
-      window.electronAPI.typeText(content as string, {
-        autoIndent,
-        autoBrackets
-      })
-      setIsTyping(true)
-    }
-  }
-
-  useEffect(() => {
-    const onTypingEnd = () => {
-      setIsTyping(false)
-    }
-
-    window.electronAPI.on("typing-finished", onTypingEnd)
-
-    return () => {
-      window.electronAPI.removeListener("typing-finished", onTypingEnd)
-    }
-  }, [])
 
   return (
     <div className="space-y-2">
@@ -254,6 +232,25 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
   )
   const [customContent, setCustomContent] = useState<string | null>(null)
   const [questionType, setQuestionType] = useState<"coding" | "general" | null>(null)
+  const [isTyping, setIsTyping] = useState(false)
+
+  const handleType = () => {
+    if (isTyping) {
+      window.electronAPI.stopTyping()
+      setIsTyping(false)
+    } else {
+      const solution = queryClient.getQueryData(["solution"]) as {
+        code: string
+      } | null
+      if (solution?.code) {
+        window.electronAPI.typeText(solution.code, {
+          autoIndent: true,
+          autoBrackets: true
+        })
+        setIsTyping(true)
+      }
+    }
+  }
 
   const [toastOpen, setToastOpen] = useState(false)
   const [toastMessage, setToastMessage] = useState<ToastMessage>({
@@ -594,6 +591,28 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
     return () => unsubscribe()
   }, [queryClient])
 
+  useEffect(() => {
+    const onTypingEnd = () => {
+      setIsTyping(false)
+    }
+
+    window.electronAPI.on("typing-finished", onTypingEnd)
+
+    return () => {
+      window.electronAPI.removeListener("typing-finished", onTypingEnd)
+    }
+  }, [])
+
+  useEffect(() => {
+    const cleanup = window.electronAPI.onTypeCode(() => {
+      handleType()
+    })
+
+    return () => {
+      cleanup()
+    }
+  }, [handleType])
+
   const handleTooltipVisibilityChange = (visible: boolean, height: number) => {
     setIsTooltipVisible(visible)
     setTooltipHeight(height)
@@ -677,6 +696,8 @@ const Solutions: React.FC<SolutionsProps> = ({ setView }) => {
                           title={"Solution"}
                           content={solutionData}
                           isLoading={!solutionData}
+                          isTyping={isTyping}
+                          handleType={handleType}
                         />
                         <ComplexitySection
                           timeComplexity={timeComplexityData}

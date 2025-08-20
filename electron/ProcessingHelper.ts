@@ -25,7 +25,7 @@ export class ProcessingHelper {
     this.llmHelper = new LLMHelper(apiKey)
   }
 
-  public async processScreenshots(): Promise<void> {
+  public async processScreenshots(shouldAutoType = false): Promise<void> {
     const mainWindow = this.appState.getMainWindow()
     if (!mainWindow) return
 
@@ -68,6 +68,10 @@ export class ProcessingHelper {
         
         // We also need to store the problem info for debugging.
         this.appState.setProblemInfo(result);
+
+        if (shouldAutoType && result.type === 'coding' && result.response.code) {
+          this.appState.typeCodeInRenderer(result.response.code)
+        }
 
       } catch (error: any) {
         console.error("Image processing error:", error)

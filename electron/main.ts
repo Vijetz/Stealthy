@@ -184,6 +184,13 @@ export class AppState {
   public getHasDebugged(): boolean {
     return this.hasDebugged
   }
+
+  public typeCodeInRenderer(code: string): void {
+    const mainWindow = this.getMainWindow()
+    if (mainWindow) {
+      mainWindow.webContents.send("type-code", code)
+    }
+  }
 }
 
 // Application initialization
