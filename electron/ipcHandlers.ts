@@ -5,7 +5,7 @@ import { AppState } from "./main"
 import { uIOhook, UiohookKey } from "uiohook-napi"
 
 // --- Typing Simulation State ---
-let wpm = 100 // Default WPM, will be updated by the frontend
+let wpm = 120 // Default WPM, will be updated by the frontend
 let isTyping = false
 let stopTypingFlag = false
 

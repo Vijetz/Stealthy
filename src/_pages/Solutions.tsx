@@ -62,7 +62,7 @@ const SolutionSection = ({
   handleType: () => void
 }) => {
   const [isCopied, setIsCopied] = useState(false)
-  const [wpm, setWpm] = useState(100)
+  const [wpm, setWpm] = useState(120)
   const [autoIndent, setAutoIndent] = useState(true)
   const [autoBrackets, setAutoBrackets] = useState(true)
 

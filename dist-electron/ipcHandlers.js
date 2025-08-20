@@ -213,7 +213,7 @@ function registerIpcHandlers(appState) {
         return { success: true };
     });
     electron_1.ipcMain.handle("update-typing-speed", (event, newWpm) => {
-        if (newWpm >= 80 && newWpm <= 800) {
+        if (newWpm >= 80 && newWpm <= 180) {
             wpm = newWpm;
         }
     });

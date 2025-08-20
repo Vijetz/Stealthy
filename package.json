@@ -1,5 +1,5 @@
 {
-  "name": "interview-coder",
+  "name": "stealthy",
   "version": "1.0.0",
   "main": "./dist-electron/main.js",
   "scripts": {
