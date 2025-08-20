@@ -28,6 +28,9 @@ class ShortcutsHelper {
         electron_1.globalShortcut.register("Control+Enter", async () => {
             await this.appState.processingHelper.processScreenshots();
         });
+        electron_1.globalShortcut.register("Control+Shift+Enter", async () => {
+            await this.appState.processingHelper.processScreenshots();
+        });
         electron_1.globalShortcut.register("Control+R", () => {
             console.log("Command + R pressed. Canceling requests and resetting queues...");
             // Cancel ongoing API requests
@@ -44,19 +47,19 @@ class ShortcutsHelper {
             }
         });
         // New shortcuts for moving the window
-        electron_1.globalShortcut.register("Control+Left", () => {
+        electron_1.globalShortcut.register("CommandorControl+Left", () => {
             console.log("Command/Ctrl + Left pressed. Moving window left.");
             this.appState.moveWindowLeft();
         });
-        electron_1.globalShortcut.register("Control+Right", () => {
+        electron_1.globalShortcut.register("CommandorControl+Right", () => {
             console.log("Command/Ctrl + Right pressed. Moving window right.");
             this.appState.moveWindowRight();
         });
-        electron_1.globalShortcut.register("Control+Down", () => {
+        electron_1.globalShortcut.register("CommandorControl+Down", () => {
             console.log("Command/Ctrl + down pressed. Moving window down.");
             this.appState.moveWindowDown();
         });
-        electron_1.globalShortcut.register("Control+Up", () => {
+        electron_1.globalShortcut.register("CommandorControl+Up", () => {
             console.log("Command/Ctrl + Up pressed. Moving window Up.");
             this.appState.moveWindowUp();
         });

@@ -30,6 +30,10 @@ export class ShortcutsHelper {
       await this.appState.processingHelper.processScreenshots()
     })
 
+    globalShortcut.register("Control+Shift+Enter", async () => {
+      await this.appState.processingHelper.processScreenshots()
+    })
+
     globalShortcut.register("Control+R", () => {
       console.log(
         "Command + R pressed. Canceling requests and resetting queues..."
@@ -54,20 +58,20 @@ export class ShortcutsHelper {
     })
 
     // New shortcuts for moving the window
-    globalShortcut.register("Control+Left", () => {
+    globalShortcut.register("CommandorControl+Left", () => {
       console.log("Command/Ctrl + Left pressed. Moving window left.")
       this.appState.moveWindowLeft()
     })
 
-    globalShortcut.register("Control+Right", () => {
+    globalShortcut.register("CommandorControl+Right", () => {
       console.log("Command/Ctrl + Right pressed. Moving window right.")
       this.appState.moveWindowRight()
     })
-    globalShortcut.register("Control+Down", () => {
+    globalShortcut.register("CommandorControl+Down", () => {
       console.log("Command/Ctrl + down pressed. Moving window down.")
       this.appState.moveWindowDown()
     })
-    globalShortcut.register("Control+Up", () => {
+    globalShortcut.register("CommandorControl+Up", () => {
       console.log("Command/Ctrl + Up pressed. Moving window Up.")
       this.appState.moveWindowUp()
     })

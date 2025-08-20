@@ -62,7 +62,7 @@ class ScreenshotHelper {
         this.extraScreenshotQueue = [];
     }
     async takeScreenshot(hideMainWindow, showMainWindow) {
-        hideMainWindow();
+        // hideMainWindow()
         let screenshotPath = "";
         const captureAndCompress = async (dir) => {
             const rawPath = node_path_1.default.join(dir, `${(0, uuid_1.v4)()}.png`);
@@ -105,7 +105,7 @@ class ScreenshotHelper {
                 }
             }
         }
-        showMainWindow();
+        // showMainWindow()
         return screenshotPath;
     }
     async getImagePreview(filepath) {

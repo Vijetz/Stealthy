@@ -79,7 +79,7 @@ export class ScreenshotHelper {
     hideMainWindow: () => void,
     showMainWindow: () => void
   ): Promise<string> {
-    hideMainWindow()
+    // hideMainWindow()
     let screenshotPath = ""
 
     const captureAndCompress = async (dir: string) => {
@@ -123,7 +123,7 @@ export class ScreenshotHelper {
       }
     }
 
-    showMainWindow()
+    // showMainWindow()
     return screenshotPath
   }
 
