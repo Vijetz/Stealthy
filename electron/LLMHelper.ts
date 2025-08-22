@@ -18,10 +18,15 @@ export class LLMHelper {
 
   private async fileToGenerativePart(imagePath: string) {
     const imageData = await fs.promises.readFile(imagePath)
+    const mimeType = imagePath.endsWith(".png")
+      ? "image/png"
+      : imagePath.endsWith(".jpg") || imagePath.endsWith(".jpeg")
+      ? "image/jpeg"
+      : "image/png" // Fallback to png
     return {
       inlineData: {
         data: imageData.toString("base64"),
-        mimeType: "image/png"
+        mimeType
       }
     }
   }
