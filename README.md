@@ -1,4 +1,4 @@
-# Free Cluely
+# Stealthy Ai
 
 A desktop application to help you cheat on everything. 
 
