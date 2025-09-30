@@ -1,6 +1,6 @@
-# Stealthy Ai
+# SwiftEase AI
 
-A desktop application to help you cheat on everything. 
+AI at Your Fingertips
 
 ## 🚀 Quick Start Guide
 
